@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE INFINITE STADIUM</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0a0a0a;
+    --border: #2a2a2a;
+    --text: #e8e8e8;
+    --muted: #888;
+    --accent: #c8ff00;
+    --danger: #ff3b3b;
+    --dim: #aaa;
+    --home: #4aaeff;
+    --away: #ffaa44;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    min-height: 100vh;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* HEADER */
+  .header {
+    border-bottom: 3px solid var(--accent);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .header-sub { font-size: 9px; color: var(--dim); letter-spacing: 2px; }
+  .header-nav { display: flex; }
+  .nav-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    background: #161616;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    border-right: none;
+    text-transform: uppercase;
+  }
+  .nav-btn:last-of-type { border-right: 1px solid var(--border); }
+  .nav-btn:hover { color: var(--text); border-color: #444; background: #1e1e1e; }
+  .nav-btn.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: #0f1a00;
+  }
+  .nav-btn.active:hover { background: #152000; }
+  .header-right { text-align: right; }
+  .live-badge {
+    display: inline-block;
+    background: var(--danger);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 2px 6px;
+    animation: blink 1.2s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.2} }
+  .clock { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--dim); margin-top: 2px; }
+  .game-ctr { font-family: 'Share Tech Mono', monospace; font-size: 9px; color: var(--dim); }
+
+  /* LAYOUT */
+  .main { display: grid; grid-template-columns: 1fr 1fr 1fr; border: 1px solid var(--border); }
+  .panel { border: 1px solid var(--border); }
+  .panel-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--dim);
+    padding: 7px 14px;
+    border-bottom: 1px solid var(--border);
+    background: #0d0d0d;
+  }
+
+  /* LIVE MATCH HEADER */
+  .live-panel { grid-column: 1 / 4; border-bottom: 2px solid var(--border); }
+  .matchup { display: grid; grid-template-columns: 1fr auto 1fr; }
+  .team-block { padding: 14px 20px; display: flex; flex-direction: column; justify-content: center; }
+  .team-block.home { border-right: 1px solid var(--border); }
+  .team-block.away { border-left: 1px solid var(--border); text-align: right; }
+  .team-identity { display: flex; align-items: center; gap: 10px; }
+  .away-identity { flex-direction: row-reverse; }
+  .team-logo { width: 52px; height: 52px; flex-shrink: 0; }
+  .team-logo svg { width: 100%; height: 100%; }
+  .team-era { font-size: 9px; letter-spacing: 2px; color: var(--dim); margin-bottom: 3px; }
+  .team-name { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; line-height: 1.1; }
+  .team-name.home { color: var(--home); }
+  .team-name.away { color: var(--away); }
+  .team-comp { font-size: 9px; color: var(--dim); margin-top: 2px; }
+  .score-block { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 28px; min-width: 140px; }
+  .score { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 4px; line-height: 1; }
+  .score-sep { color: var(--muted); margin: 0 4px; }
+  .match-time { font-size: 10px; color: var(--accent); letter-spacing: 2px; margin-top: 4px; }
+  .match-round { font-size: 9px; color: var(--dim); letter-spacing: 1px; margin-top: 2px; }
+  .progress-bar { height: 2px; background: var(--border); }
+  .progress-fill { height: 100%; background: var(--accent); transition: width 0.5s linear; }
+
+  /* SCORING SUMMARY */
+  .scoring-panel { grid-column: 1 / 4; border-bottom: 2px solid var(--border); }
+  .scoring-inner { display: grid; grid-template-columns: 1fr 90px 1fr; min-height: 100px; }
+  .scoring-col { padding: 10px 14px; }
+  .scoring-col.home-col { border-right: 1px solid var(--border); }
+  .scoring-col.away-col { border-left: 1px solid var(--border); text-align: right; }
+  .scoring-divider { display: flex; flex-direction: column; align-items: center; padding: 10px 4px; gap: 14px; border-right: 1px solid var(--border); }
+  .div-stat { text-align: center; }
+  .div-num { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 2px; color: var(--text); }
+  .div-lbl { font-size: 7px; letter-spacing: 2px; color: var(--muted); }
+  .scoring-group { margin-bottom: 8px; }
+  .scoring-section-label { font-size: 8px; letter-spacing: 2px; color: var(--dim); border-bottom: 1px solid var(--border); padding-bottom: 2px; margin-bottom: 4px; }
+  .score-event { font-size: 10px; line-height: 1.7; color: var(--dim); }
+  .score-event .pname { color: var(--text); }
+  .score-event .pmin { color: var(--muted); font-size: 9px; margin-left: 3px; }
+  .halftime-row {
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    gap: 16px; padding: 5px 14px; background: #0d0d0d;
+  }
+  .ht-label { font-size: 9px; letter-spacing: 2px; color: var(--dim); }
+  .ht-score { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 3px; }
+
+  /* COMMENTARY */
+  .commentary-panel { grid-column: 1 / 4; border-bottom: 2px solid var(--border); }
+  .commentary-feed {
+    padding: 0;
+    max-height: 160px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+  .commentary-feed::-webkit-scrollbar { width: 4px; }
+  .commentary-feed::-webkit-scrollbar-track { background: transparent; }
+  .commentary-feed::-webkit-scrollbar-thumb { background: var(--border); }
+  .commentary-line {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 10px;
+    padding: 6px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    line-height: 1.5;
+    animation: fade-in 0.4s ease;
+  }
+  .commentary-line:last-child { border-bottom: none; }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  .comm-min {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    padding-top: 1px;
+    text-align: right;
+  }
+  .comm-min.neutral { color: var(--muted); }
+  .comm-text { color: var(--text); }
+  .comm-text.scoring-home { color: var(--home); }
+  .comm-text.scoring-away { color: var(--away); }
+  .comm-text.muted { color: var(--dim); }
+  /* SCORERS */
+  .scorers-row {
+    padding: 5px 14px;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 20px 1fr 28px 28px 28px 34px;
+    gap: 4px;
+    align-items: center;
+    font-size: 10px;
+  }
+  .scorers-row:last-child { border-bottom: none; }
+  .scorers-row.header {
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    padding-top: 6px;
+    padding-bottom: 5px;
+  }
+  .sc-rank { color: var(--muted); font-size: 9px; font-family: 'Share Tech Mono', monospace; }
+  .sc-name { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sc-num  { text-align: center; font-family: 'Share Tech Mono', monospace; color: var(--dim); }
+  .sc-pts  { text-align: right; font-family: 'Share Tech Mono', monospace; color: var(--accent); font-weight: 700; }
+
+  .game-row {
+    padding: 8px 14px; border-bottom: 1px solid var(--border);
+    display: grid; grid-template-columns: 36px 1fr auto;
+    gap: 8px; align-items: center; font-size: 10px;
+  }
+  .game-row:last-child { border-bottom: none; }
+  .game-num { font-size: 9px; color: var(--dim); font-family: 'Share Tech Mono', monospace; }
+  .game-home { color: var(--home); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .game-away { color: var(--away); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .game-vs { color: var(--muted); font-size: 8px; }
+  .game-score { font-family: 'Share Tech Mono', monospace; font-size: 11px; text-align: right; white-space: nowrap; }
+  .result-win { color: var(--accent); }
+  .result-loss { color: var(--dim); }
+  .upcoming-label { font-size: 8px; color: var(--muted); margin-left: 4px; }
+
+  /* FOOTER */
+  .footer {
+    border-top: 1px solid var(--border); padding: 5px 20px;
+    display: flex; justify-content: space-between;
+    color: var(--dim); font-size: 9px; letter-spacing: 1px;
+  }
+  .footer-acc { color: var(--accent); }
+
+  /* README PAGE */
+  .readme-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 32px 60px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .readme-page h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    line-height: 1;
+  }
+  .readme-page h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    color: var(--text);
+    margin: 32px 0 10px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+  }
+  .readme-page h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin: 20px 0 6px;
+  }
+  .readme-page p { margin-bottom: 12px; color: var(--dim); }
+  .readme-lead { font-size: 14px; color: var(--text); line-height: 1.6; }
+  .readme-page strong { color: var(--text); }
+  .readme-page ul { margin: 8px 0 14px 20px; color: var(--dim); }
+  .readme-page li { margin-bottom: 4px; }
+  .readme-hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+  .readme-note {
+    background: #0d0d0d;
+    border-left: 2px solid var(--accent);
+    padding: 10px 14px;
+    font-size: 11px;
+    color: var(--dim);
+    margin: 8px 0 14px;
+  }
+  .readme-footer-line { text-align: center; color: var(--muted); font-size: 12px; margin-top: 16px; }
+  .readme-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 20px;
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .readme-table th {
+    text-align: left;
+    padding: 6px 12px;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: #0d0d0d;
+  }
+  .readme-table td {
+    padding: 6px 12px;
+    color: var(--dim);
+    border-bottom: 1px solid var(--border);
+  }
+  .readme-table tr:last-child td { border-bottom: none; }
+  .readme-table tr:hover td { background: #111; color: var(--text); }
+  .bracket-page { padding: 20px; overflow-x: auto; }
+  .bracket-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 4px; color: var(--dim); margin-bottom: 16px; }
+  .bracket-container { display: flex; align-items: flex-start; min-width: max-content; }
+  .bracket-round { display: flex; flex-direction: column; }
+  .bracket-round-label {
+    font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: 3px;
+    color: var(--dim); padding: 0 8px 8px 8px; border-bottom: 1px solid var(--border);
+  }
+  .bracket-col {
+    display: flex; flex-direction: column; padding: 6px 0;
+    border-right: 1px solid var(--border); min-width: 210px;
+  }
+  .bracket-match { margin: 3px 8px; border: 1px solid var(--border); background: #0d0d0d; }
+  .bracket-match.live-now { border-color: var(--accent); }
+  .bracket-team {
+    padding: 4px 8px; font-size: 9px;
+    display: flex; justify-content: space-between; align-items: center; gap: 4px;
+    white-space: nowrap; overflow: hidden;
+  }
+  .bracket-team:first-child { border-bottom: 1px solid var(--border); }
+  .bracket-team.winner { color: var(--accent); }
+  .bracket-team.loser { color: var(--dim); }
+  .bracket-team.pending { color: var(--text); }
+  .bt-name { overflow: hidden; text-overflow: ellipsis; }
+  .bt-score { font-family: 'Share Tech Mono', monospace; font-size: 10px; flex-shrink: 0; }
+  .bracket-arrow { display: flex; align-items: center; padding: 0 6px; color: var(--muted); font-size: 18px; align-self: center; }
+  .bracket-note { font-size: 9px; color: var(--muted); margin-top: 16px; border-top: 1px solid var(--border); padding-top: 10px; letter-spacing: 1px; }
+  .help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid var(--muted);
+    color: var(--muted);
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s;
+    user-select: none;
+  }
+  .help-icon:hover { border-color: var(--accent); color: var(--accent); }
+  .help-tooltip {
+    display: none;
+    position: absolute;
+    top: 26px;
+    left: 0;
+    width: 320px;
+    background: #111;
+    border: 1px solid var(--accent);
+    padding: 14px 16px;
+    font-size: 11px;
+    color: var(--text);
+    line-height: 1.6;
+    letter-spacing: 0.3px;
+    z-index: 999;
+    pointer-events: none;
+  }
+  .help-tooltip-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .help-icon:hover .help-tooltip { display: block; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="header-title">THE INFINITE RUGBY LEAGUE STADIUM</div>
+      <div class="help-icon">?
+        <div class="help-tooltip">
+          <div class="help-tooltip-title">WHAT IS THIS?</div>
+          Every rugby league team that has ever existed — across every competition, every country, every era — is competing in a single eternal knockout tournament.<br><br>
+          1908 Eastern Suburbs Roosters vs 2019 Tonga Mate Ma'a. 1972 St George Dragons vs the 2003 Leeds Rhinos. The bracket never ends. The stadium never closes. Games run around the clock, forever.
+        </div>
+      </div>
+    </div>
+    <div class="header-sub">Every team · Every era · Every competition · Forever</div>
+  </div>
+  <div class="header-nav">
+    <button class="nav-btn active" id="btn-live" onclick="showPage('live',this)">▶ LIVE</button>
+    <button class="nav-btn" id="btn-bracket" onclick="showPage('bracket',this)">BRACKET</button>
+    <button class="nav-btn" id="btn-readme" onclick="showPage('readme',this)">README</button>
+    <button class="nav-btn" id="btn-audio" onclick="toggleAudio(this)" title="Toggle live commentary audio">🔇 AUDIO</button>
+  </div>
+  <div class="header-right">
+    <div><span class="live-badge">● LIVE</span></div>
+    <div class="clock" id="clock">--:--:--</div>
+    <div class="game-ctr">GAME #<span id="gameCounter">0</span></div>
+  </div>
+</div>
+
+<!-- LIVE PAGE -->
+<div class="page active" id="page-live">
+  <div class="main">
+
+    <div class="panel live-panel">
+      <div class="panel-label">▶ NOW PLAYING</div>
+      <div class="matchup">
+        <div class="team-block home">
+          <div class="team-era" id="homeEra"></div>
+          <div class="team-identity">
+            <div class="team-logo" id="homeLogo"></div>
+            <div class="team-name home" id="homeName">—</div>
+          </div>
+          <div class="team-comp" id="homeComp"></div>
+        </div>
+        <div class="score-block">
+          <div class="score">
+            <span id="scoreHome" style="color:var(--home)">0</span><span class="score-sep">—</span><span id="scoreAway" style="color:var(--away)">0</span>
+          </div>
+          <div class="match-time" id="matchTime">0'</div>
+          <div class="match-round" id="matchRound">ROUND 1</div>
+        </div>
+        <div class="team-block away">
+          <div class="team-era" id="awayEra"></div>
+          <div class="team-identity away-identity">
+            <div class="team-name away" id="awayName">—</div>
+            <div class="team-logo" id="awayLogo"></div>
+          </div>
+          <div class="team-comp" id="awayComp"></div>
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="panel scoring-panel">
+      <div class="scoring-inner">
+        <div class="scoring-col home-col" id="homeScoringCol"><div style="color:var(--muted);font-size:9px">—</div></div>
+        <div class="scoring-divider" id="scoringDivider"></div>
+        <div class="scoring-col away-col" id="awayScoringCol"><div style="color:var(--muted);font-size:9px;text-align:right">—</div></div>
+      </div>
+      <div class="halftime-row" id="halftimeRow" style="display:none">
+        <div class="ht-label">HALF TIME</div>
+        <div class="ht-score">
+          <span style="color:var(--home)" id="htHome">0</span>
+          <span style="color:var(--muted)"> — </span>
+          <span style="color:var(--away)" id="htAway">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel commentary-panel">
+      <div class="panel-label">COMMENTARY</div>
+      <div class="commentary-feed" id="commentaryFeed"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">NEXT 5 FIXTURES</div>
+      <div id="upcomingList"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">LAST 5 RESULTS</div>
+      <div id="resultsList"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">TOP POINT SCORERS</div>
+      <div id="scorersList"></div>
+    </div>
+
+  </div>
+  <div class="footer">
+    <span>KNOCKOUT BRACKET · ETERNAL COMPETITION</span>
+    <span class="footer-acc">T<span id="roundNum">1</span></span>
+    <span style="display:flex;align-items:center;gap:12px">
+      <span style="color:var(--muted);font-size:9px;letter-spacing:1px">SPEED</span>
+      <select id="speedSelect" onchange="changeSpeed(this)"
+        style="font-family:'IBM Plex Mono',monospace;font-size:9px;background:#111;color:var(--dim);border:1px solid var(--border);padding:2px 6px;letter-spacing:1px;cursor:pointer;outline:none">
+        <option value="8000">×600 (8s)</option>
+        <option value="30000">×160 (30s)</option>
+        <option value="60000">×80 (1 min)</option>
+        <option value="90000" selected>×53 (90s)</option>
+        <option value="120000">×40 (2 min)</option>
+        <option value="300000">×16 (5 min)</option>
+        <option value="480000000">×1 (real time)</option>
+      </select>
+      <button onclick="if(confirm('Reset all progress and start a new tournament?')) clearSave()"
+        style="font-family:'IBM Plex Mono',monospace;font-size:9px;background:none;border:1px solid var(--border);color:var(--muted);padding:2px 8px;cursor:pointer;letter-spacing:1px;transition:color 0.15s,border-color 0.15s"
+        onmouseover="this.style.color='var(--danger)';this.style.borderColor='var(--danger)'"
+        onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">RESET</button>
+    </span>
+  </div>
+</div>
+
+<!-- README PAGE -->
+<div class="page" id="page-readme">
+  <div class="readme-page">
+
+    <h1>The Infinite Rugby League Stadium</h1>
+    <p class="readme-lead">Every rugby league team that has ever existed — across every competition, every country, every era — is competing in a single eternal knockout tournament that never stops and never ends. The bracket never closes. The stadium never empties. Someone is always playing.</p>
+
+    <hr class="readme-hr">
+
+    <h2>What Is This?</h2>
+    <p>The Infinite Rugby League Stadium is a simulated live sports dashboard that pits rugby league teams from across all of history against each other in a continuous single-elimination tournament. The 1908 Eastern Suburbs Roosters can face the 2019 Tonga Mate Ma'a. The 1972 St George Dragons can be knocked out by the 2003 Leeds Rhinos. Eras collide, competitions dissolve, and the impossible matchups pile up — because in this stadium, time means nothing and someone always has to go home.</p>
+
+    <hr class="readme-hr">
+
+    <h2>The Teams</h2>
+    <h3>How Many Teams</h3>
+    <p>The competition draws from <strong>90 distinct clubs and representative sides</strong>, spanning:</p>
+    <ul>
+      <li>NRL, NSWRFL, NSWRL, and ARL clubs (1908–2024)</li>
+      <li>Queensland Rugby League (QRL) and Intrust Super Cup clubs</li>
+      <li>UK competitions: Northern Union, RL Championship, First Division, Super League, Championship</li>
+      <li>International and representative sides: Australia, Great Britain, England, New Zealand, Papua New Guinea, France, Samoa, Tonga, Fiji, Wales, Scotland, Ireland, Lebanon, Cook Islands, Jamaica, USA</li>
+      <li>State of Origin representative teams (NSW Blues and Queensland Maroons)</li>
+      <li>PNG Digicel Cup clubs</li>
+      <li>New Zealand domestic clubs</li>
+    </ul>
+
+    <h3>How the Pool Is Built</h3>
+    <p>Each club is entered across multiple years of their existence — roughly one entry per 7 years of history. This means the <strong>1908 South Sydney Rabbitohs</strong>, the <strong>1967 South Sydney Rabbitohs</strong>, and the <strong>2024 South Sydney Rabbitohs</strong> are all separate and independent competitors.</p>
+    <p>This generates approximately <strong>615 team-year combinations</strong> in total, making each tournament entry unique and historically grounded.</p>
+
+    <h3>Player Rosters</h3>
+    <p>Every major club has a real historical player roster embedded in the simulation. When a match is played, each team draws 13 players from their actual known squad for that era. So the 1982 Canberra Raiders might field Mal Meninga, Laurie Daley, and Bradley Clyde, while the 2023 Brisbane Broncos line up Adam Reynolds, Payne Haas, and Selwyn Cobbo.</p>
+    <p>Teams without a specific historical roster — mostly smaller QRL and international sides — draw from a plausible generic pool.</p>
+
+    <hr class="readme-hr">
+
+    <h2>The Competition Format</h2>
+    <h3>Single Elimination</h3>
+    <p>The tournament is a true <strong>single-elimination knockout</strong>. Every team plays once per round. The loser goes home. The winner advances. There are no second chances, no reseeding, no wildcards.</p>
+
+    <h3>Bracket Structure</h3>
+    <p>615 entries are padded to the nearest power of 2, which is <strong>1,024 slots</strong>. The remaining 409 slots are filled by byes, which are automatically skipped. That is approximately <strong>800 real matches</strong> to produce one champion.</p>
+
+    <table class="readme-table">
+      <thead><tr><th>Round</th><th>Scheduled</th><th>Real Games</th><th>Survivors</th></tr></thead>
+      <tbody>
+        <tr><td>Round 1</td><td>512</td><td>~307</td><td>512</td></tr>
+        <tr><td>Round 2</td><td>256</td><td>~256</td><td>256</td></tr>
+        <tr><td>Round 3</td><td>128</td><td>~128</td><td>128</td></tr>
+        <tr><td>Round of 64</td><td>64</td><td>64</td><td>64</td></tr>
+        <tr><td>Round of 32</td><td>32</td><td>32</td><td>32</td></tr>
+        <tr><td>Quarter-Finals</td><td>8</td><td>8</td><td>8</td></tr>
+        <tr><td>Semi-Finals</td><td>4</td><td>4</td><td>4</td></tr>
+        <tr><td>Preliminary Finals</td><td>2</td><td>2</td><td>2</td></tr>
+        <tr><td>Grand Final</td><td>1</td><td>1</td><td>1 champion</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Drawn Matches</h3>
+    <p>If scores are level at full time, the match goes to <strong>golden point extra time</strong>. The clock keeps running, events keep firing, and the first try or field goal ends the match immediately. Penalty goals and conversions do not count in extra time. The progress bar turns red during golden point to signal the match is on the line.</p>
+
+    <h3>Tournament Reset</h3>
+    <p>When a champion is crowned, <strong>Tournament 2 begins immediately</strong> with a fresh random shuffle of all 615 entries. The draw is never the same twice. The stadium never closes.</p>
+
+    <hr class="readme-hr">
+
+    <h2>How Long Does It Take?</h2>
+    <p>The speed of the simulation is adjustable using the <strong>SPEED</strong> dropdown in the footer. It takes effect immediately — no page refresh required — so you can crank it up to seed the bracket quickly, then dial back to enjoy individual matches.</p>
+
+    <table class="readme-table">
+      <thead><tr><th>Speed Setting</th><th>Real Time Per Game</th><th>Multiplier</th><th>Full Tournament</th></tr></thead>
+      <tbody>
+        <tr><td>×600 (8s)</td><td>8 seconds</td><td>600×</td><td>~1.8 hours</td></tr>
+        <tr><td>×160 (30s)</td><td>30 seconds</td><td>160×</td><td>~6.7 hours</td></tr>
+        <tr><td>×80 (1 min)</td><td>1 minute</td><td>80×</td><td>~13 hours</td></tr>
+        <tr><td>×53 (90s) — default</td><td>90 seconds</td><td>53×</td><td>~20 hours</td></tr>
+        <tr><td>×40 (2 min)</td><td>2 minutes</td><td>40×</td><td>~26 hours</td></tr>
+        <tr><td>×16 (5 min)</td><td>5 minutes</td><td>16×</td><td>~67 hours</td></tr>
+        <tr><td>×1 (real time)</td><td>80 minutes</td><td>1×</td><td>~44 days</td></tr>
+      </tbody>
+    </table>
+
+    <p>At the default 90-second speed, Round 1 alone takes approximately <strong>7.5 hours</strong> to complete. A full tournament from first whistle to Grand Final takes around <strong>20 hours of continuous running</strong>.</p>
+    <p>The recommended approach is to start at ×600 to seed the bracket with a few rounds of results, then drop back to 90 seconds or slower to follow matches properly.</p>
+
+    <hr class="readme-hr">
+
+    <h2>The Live Dashboard</h2>
+    <h3>Now Playing</h3>
+    <p>The main panel shows the current live match: team names, the year each team is from, their competition, the live score, match clock, and which half is being played.</p>
+
+    <h3>Scoring Summary</h3>
+    <p>A live scoring breakdown shows tries, conversions, penalty goals, and field goals — each with the scorer's name and the minute they occurred. A central column tracks the try count, conversion ratio, and penalty tally at a glance. A half-time score is displayed once the 40-minute mark is reached.</p>
+
+    <h3>Commentary</h3>
+    <p>A live commentary feed updates throughout the match, covering tries, conversions, penalty goals, field goals, sin bins, injuries, big hits, half time, and full time. General play lines fire between events to keep the feed feeling live. The most recent call always sits at the top.</p>
+
+    <h3>Audio Commentary</h3>
+    <p>The commentary can be read aloud using the browser's built-in speech synthesis engine. Click the <strong>AUDIO</strong> button in the header to activate it. A voice selector dropdown lets you audition every English voice installed on your machine. The default is <strong>Google UK English Male</strong>.</p>
+    <p class="readme-note">Audio requires a user interaction to activate (browser policy). It will not start automatically on page load. The best experience is in Chrome or Edge on desktop.</p>
+
+    <h3>Next 5 Fixtures</h3>
+    <p>A panel showing the next five scheduled matchups from the current round — the upcoming bracket draw made visible.</p>
+
+    <h3>Last 5 Results</h3>
+    <p>The five most recently completed matches, showing both teams, the final score, and which side advanced.</p>
+
+    <h3>Top Point Scorers</h3>
+    <p>A running leaderboard of the tournament's top 10 point scorers, tracking tries (4pts), conversions (2pts), and field goals (1pts). The table updates live during the current match and accumulates across all completed games. It resets at the start of each new tournament.</p>
+
+    <h3>The Bracket</h3>
+    <p>A separate <strong>Bracket</strong> page shows the full tournament tree as it builds. Each round is displayed as a column with completed matches showing winner and loser. The current live match is highlighted. The bracket page also shows which tournament is running, which round is in progress, and approximately how many teams remain alive.</p>
+
+    <hr class="readme-hr">
+
+    <h2>The Logos</h2>
+    <p>Every major club has a custom-designed SVG crest in their actual team colours. Any team without a specific crest receives an automatically generated logo — the team name is hashed to produce a consistent colour pair and the club's initials are rendered inside a circular badge.</p>
+
+    <hr class="readme-hr">
+
+    <h2>Technical Notes</h2>
+    <ul>
+      <li>The simulation runs entirely in the browser — no server, no database, no external API calls</li>
+      <li>All player rosters, team data, competition mappings, and commentary are embedded in the HTML file</li>
+      <li>The bracket state resets on page refresh — there is no persistence between sessions</li>
+      <li>Audio uses the Web Speech API, available natively in Chrome, Edge, and Safari</li>
+      <li>The best audio experience is in Chrome or Edge on desktop, where a wider range of natural voices is available</li>
+    </ul>
+
+    <hr class="readme-hr">
+    <p class="readme-footer-line"><em>The Infinite Rugby League Stadium. Every team. Every era. Every competition. Forever.</em></p>
+
+  </div><!-- /.readme-page -->
+</div><!-- /#page-readme -->
+
+<!-- BRACKET PAGE -->
+<div class="page" id="page-bracket">
+  <div class="bracket-page">
+    <div class="bracket-title">KNOCKOUT BRACKET</div>
+    <div class="bracket-container" id="bracketContainer"></div>
+    <div class="bracket-note" id="bracketNote"></div>
+  </div>
+</div>
+
+<script>
+// ─── PAGE NAV ───────────────────────────────────────────────
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if (id==='bracket') renderBracket();
+}
+
+function changeSpeed(sel) {
+  GAME_MS = parseInt(sel.value);
+}
+
+// ─── TEAM DATA ──────────────────────────────────────────────
+const TEAM_DEFS = [
+  ["Eastern Suburbs Roosters",     1908,1994, ["NSWRFL","NSWRL"]],
+  ["Sydney Roosters",              1995,2024, ["ARL","NRL"]],
+  ["South Sydney Rabbitohs",       1908,2024, ["NSWRFL","NSWRL","ARL","NRL"]],
+  ["St George Dragons",            1921,1998, ["NSWRFL","NSWRL","ARL"]],
+  ["St George Illawarra Dragons",  1999,2024, ["NRL"]],
+  ["Canterbury-Bankstown Bulldogs",1935,2024, ["NSWRFL","NSWRL","ARL","NRL"]],
+  ["Parramatta Eels",              1947,2024, ["NSWRFL","NSWRL","ARL","NRL"]],
+  ["Manly-Warringah Sea Eagles",   1947,2024, ["NSWRFL","NSWRL","ARL","NRL"]],
+  ["Western Suburbs Magpies",      1908,1999, ["NSWRFL","NSWRL","ARL"]],
+  ["Newtown Jets",                 1908,1983, ["NSWRFL","NSWRL"]],
+  ["North Sydney Bears",           1908,1999, ["NSWRFL","NSWRL","ARL"]],
+  ["Balmain Tigers",               1908,1999, ["NSWRFL","NSWRL","ARL"]],
+  ["Penrith Panthers",             1967,2024, ["NSWRL","ARL","NRL"]],
+  ["Cronulla-Sutherland Sharks",   1967,2024, ["NSWRL","ARL","NRL"]],
+  ["Gold Coast Chargers",          1988,1998, ["NSWRL","ARL"]],
+  ["Gold Coast Titans",            2007,2024, ["NRL"]],
+  ["Brisbane Broncos",             1988,2024, ["NSWRL","ARL","NRL"]],
+  ["Canberra Raiders",             1982,2024, ["NSWRL","ARL","NRL"]],
+  ["Newcastle Knights",            1988,2024, ["NSWRL","ARL","NRL"]],
+  ["Illawarra Steelers",           1982,1998, ["NSWRL","ARL"]],
+  ["South Queensland Crushers",    1995,1997, ["ARL"]],
+  ["Hunter Mariners",              1995,1997, ["Super League (Aus)"]],
+  ["Northern Eagles",              2000,2002, ["NRL"]],
+  ["Wests Tigers",                 2000,2024, ["NRL"]],
+  ["Melbourne Storm",              1998,2024, ["NRL"]],
+  ["North Queensland Cowboys",     1995,2024, ["NRL"]],
+  ["New Zealand Warriors",         1995,2024, ["ARL","NRL"]],
+  ["Dolphins",                     2023,2024, ["NRL"]],
+  ["Redcliffe Dolphins",           1946,2022, ["QRL","Intrust Super Cup"]],
+  ["Brisbane Souths",              1909,2024, ["QRL","Intrust Super Cup"]],
+  ["Norths Devils",                1929,2024, ["QRL","Intrust Super Cup"]],
+  ["Wynnum Manly Seagulls",        1934,2024, ["QRL","Intrust Super Cup"]],
+  ["Ipswich Jets",                 1900,2024, ["QRL","Intrust Super Cup"]],
+  ["Burleigh Bears",               1962,2024, ["QRL","Intrust Super Cup"]],
+  ["Tweed Heads Seagulls",         1966,2024, ["QRL","Intrust Super Cup"]],
+  ["Easts Tigers",                 1898,2024, ["QRL"]],
+  ["Sunshine Coast Falcons",       1993,2024, ["QRL","Intrust Super Cup"]],
+  ["Mackay Cutters",               2004,2024, ["QRL","Intrust Super Cup"]],
+  ["Central Comets",               1998,2003, ["QRL"]],
+  ["Souths United",                1913,2024, ["QRL","Brisbane club competition"]],
+  ["Valleys Diehards",             1910,2024, ["QRL","Brisbane club competition"]],
+  ["Past Brothers",                1929,2024, ["QRL","Brisbane club competition"]],
+  ["Wests Panthers",               1961,2024, ["QRL","Brisbane club competition"]],
+  ["Toowoomba Clydesdales",        1908,2024, ["QRL","Intrust Super Cup"]],
+  ["Bundaberg Waves",              1990,2015, ["QRL"]],
+  ["Rockhampton Rustlers",         1970,2010, ["QRL"]],
+  ["Cairns Brothers",              1948,2024, ["QRL","North Queensland Cup"]],
+  ["Wigan Warriors",               1895,2024, ["Northern Union","RL Championship","First Division","Super League"]],
+  ["St Helens",                    1895,2024, ["Northern Union","RL Championship","First Division","Super League"]],
+  ["Leeds Rhinos",                 1895,2024, ["Northern Union","RL Championship","First Division","Super League"]],
+  ["Bradford Bulls",               1895,2024, ["Northern Union","RL Championship","First Division","Super League"]],
+  ["Castleford Tigers",            1926,2024, ["RL Championship","First Division","Super League","Championship"]],
+  ["Wakefield Trinity",            1895,2024, ["Northern Union","RL Championship","First Division","Super League","Championship"]],
+  ["Huddersfield Giants",          1895,2024, ["Northern Union","RL Championship","First Division","Super League"]],
+  ["Hull FC",                      1895,2024, ["Northern Union","RL Championship","First Division","Super League"]],
+  ["Hull KR",                      1895,2024, ["Northern Union","RL Championship","First Division","Super League","Championship"]],
+  ["Widnes Vikings",               1895,2024, ["Northern Union","RL Championship","First Division","Super League","Championship"]],
+  ["Salford Red Devils",           1895,2024, ["Northern Union","RL Championship","First Division","Super League"]],
+  ["Warrington Wolves",            1895,2024, ["Northern Union","RL Championship","First Division","Super League"]],
+  ["Halifax",                      1895,2024, ["Northern Union","RL Championship","First Division","Championship"]],
+  ["Featherstone Rovers",          1921,2024, ["RL Championship","First Division","Championship"]],
+  ["Leigh Centurions",             1895,2024, ["Northern Union","RL Championship","First Division","Super League","Championship"]],
+  ["London Broncos",               1980,2024, ["First Division","Super League","Championship"]],
+  ["Catalans Dragons",             2006,2024, ["Super League"]],
+  ["Toulouse Olympique",           1937,2024, ["Elite 1 (France)","Super League","Championship"]],
+  ["Canterbury Bulls",             2001,2017, ["NZ Rugby League Premiership"]],
+  ["Wellington Orcas",             2006,2012, ["NZ Rugby League Premiership"]],
+  ["Otago Nuggets",                2009,2015, ["NZ Rugby League Premiership"]],
+  ["Port Moresby Vipers",          1987,2024, ["PNG Digicel Cup"]],
+  ["Lae Tigers",                   1987,2024, ["PNG Digicel Cup"]],
+  ["Goroka Lahanis",               1987,2024, ["PNG Digicel Cup"]],
+  ["Mendi Muruks",                 2012,2024, ["PNG Digicel Cup"]],
+  ["Australia Kangaroos",          1908,2024, ["Rugby League World Cup","Pacific Championship","Ashes Series"]],
+  ["Great Britain Lions",          1908,2006, ["Ashes Series","Rugby League World Cup"]],
+  ["England",                      1975,2024, ["Rugby League World Cup","Pacific Championship"]],
+  ["France",                       1934,2024, ["Rugby League World Cup","Elite 1 (France)"]],
+  ["New Zealand Kiwis",            1907,2024, ["Rugby League World Cup","Pacific Championship"]],
+  ["Papua New Guinea Kumuls",      1975,2024, ["Rugby League World Cup","Pacific Cup"]],
+  ["Samoa",                        1995,2024, ["Rugby League World Cup","Pacific Cup"]],
+  ["Tonga Mate Ma'a",              2008,2024, ["Rugby League World Cup","Pacific Cup"]],
+  ["Fiji Bati",                    1996,2024, ["Rugby League World Cup","Pacific Cup"]],
+  ["Cook Islands",                 2009,2024, ["Pacific Cup"]],
+  ["USA Hawks",                    1987,2024, ["Rugby League World Cup","Americas Championship"]],
+  ["Jamaica Reggae Warriors",      2018,2024, ["Rugby League World Cup","Americas Championship"]],
+  ["Lebanon Cedars",               2000,2024, ["Rugby League World Cup","Middle East Championship"]],
+  ["Scotland",                     1995,2024, ["Rugby League World Cup","European Championship"]],
+  ["Ireland",                      1995,2024, ["Rugby League World Cup","European Championship"]],
+  ["Wales",                        1908,2024, ["Northern Union","Rugby League World Cup","European Championship"]],
+  ["NSW Blues",                    1980,2024, ["State of Origin"]],
+  ["Queensland Maroons",           1980,2024, ["State of Origin"]],
+];
+
+function buildPool() {
+  const pool = [];
+  TEAM_DEFS.forEach(([name,yFrom,yTo,comps]) => {
+    const span = Math.max(1, yTo - yFrom);
+    const count = Math.min(10, Math.max(2, Math.floor(span/7)));
+    const years = new Set([yFrom, yTo]);
+    while (years.size < count) years.add(yFrom + Math.floor(Math.random()*(span+1)));
+    [...years].sort((a,b)=>a-b).forEach(year => {
+      pool.push({ name, year, comp: comps[Math.floor(Math.random()*comps.length)] });
+    });
+  });
+  return pool;
+}
+const ALL_TEAMS = buildPool();
+
+// ─── REAL PLAYERS keyed by team name ────────────────────────
+// Each entry is a list of real players associated with that club across all eras.
+// Squads are sampled from this pool; if a team has no specific entry, falls back to GENERIC.
+const TEAM_PLAYERS = {
+  "Eastern Suburbs Roosters":     ["Arthur Beetson","Bobby McCarthy","Ron Coote","Johnny Raper","Ken Ikin","Tommy Bishop","Bill Mullins","Noel Kelly","Barry Beath","Kevin Junee","Elwyn Walters","Fred Daly","Ian Walsh","Gary Stevens","Denis Fitzgerald"],
+  "Sydney Roosters":              ["Brad Fittler","Anthony Minichiello","Craig Fitzgibbon","Braith Anasta","Luke Ricketson","Justin Hodges","Ned Catic","Michael Crocker","Adrian Morley","Nate Myles","Mitchell Pearce","Jake Friend","Jared Waerea-Hargreaves","Boyd Cordner","James Tedesco","Latrell Mitchell","Luke Keary","Victor Radley","Lindsay Collins","Angus Crichton","Joseph Manu","Daniel Tupou","Sam Walker","Joey Manu","Nat Butcher"],
+  "South Sydney Rabbitohs":       ["Clive Churchill","John Sattler","Bob McCarthy","Eric Simms","Ron Coote","George Piggins","Mark Graham","Paul Langmack","Craig Coleman","David Burgess","Adam Reynolds","Greg Inglis","Sam Burgess","George Burgess","Tom Burgess","Cody Walker","Alex Johnston","Damien Cook","Cameron Murray","Liam Knight","Keaon Koloamatangi","Isaiah Tass","Taane Milne","Latrell Mitchell","Benji Marshall"],
+  "St George Dragons":            ["Norm Provan","Reg Gasnier","Johnny Raper","Graeme Langlands","Billy Smith","Brian Johnston","Craig Young","Michael Potter","Mark Coyne","Wayne Pearce","Mario Fenech","Brad Clyde","Rod Wishart","Andrew Farrar","Nathan Brown"],
+  "St George Illawarra Dragons":  ["Trent Barrett","Lance Thompson","Mark Gasnier","Shaun Timmins","Luke Bailey","Ben Hornby","Jamie Soward","Jason Nightingale","Gareth Ellis","Benji Marshall","Tariq Sims","Tyson Frizell","Paul Vaughan","Zac Lomax","Jack de Belin","Ben Hunt","Corey Norman","Mikaele Ravalawa","Moses Mbye"],
+  "Canterbury-Bankstown Bulldogs":["Steve Rogers","Steve Mortimer","Peter Mortimer","Mal Meninga","Terry Lamb","Michael Hagan","Jarrod McCracken","Geoff Toovey","Paul Langmack","Willie Mason","Sonny Bill Williams","Johnathan Thurston","Hazem El Masri","Andrew Ryan","Mark O'Meley","James Graham","Josh Reynolds","Kieran Foran","Sam Kasiano","Will Hopoate","Josh Jackson","Raymond Faitala-Mariner","Tevita Pangai Jr","Jeremy Marshall-King","Matt Burton"],
+  "Parramatta Eels":              ["Ray Price","Peter Sterling","Brett Kenny","Michael Cronin","Eric Grothe","Mick Cronin","John Dorahy","Mark Laurie","Nathan Hindmarsh","Jason Smith","Craig Gower","Jamie Lyon","Kieran Foran","Robbie Farah","Bevan French","Clint Gutherson","Mitchell Moses","Reagan Campbell-Gillard","Junior Paulo","Isaiah Papali'i","Maika Sivo","Sean Russell","Ryan Matterson","J'maine Hopgood"],
+  "Manly-Warringah Sea Eagles":   ["Bob Fulton","Terry Randall","Graham Eadie","Max Krilich","Des Hasler","Steve Menzies","Craig Innes","Danny Weidler","Willie Mason","Jason King","Brent Kite","Glenn Stewart","Anthony Watmough","Jamie Lyon","Brett Stewart","Matt Ballin","Kieran Foran","Daly Cherry-Evans","Jake Trbojevic","Tom Trbojevic","Martin Taupau","Addin Fonoti-Siofele","Reuben Garrick","Jason Saab","Josh Schuster"],
+  "Western Suburbs Magpies":      ["Tommy Raudonikis","Tim Pickup","John Elias","Les Boyd","Wayne Pearce","Geoff Bugden","Craig Coleman","Greg Alexander","Steve Ella","Michael Hagan","John Cartwright","Mark Sargent"],
+  "Newtown Jets":                 ["Kel O'Shea","Don Parish","Bobby Sommer","Brian Clay","Greg Broughton","Kevin Junee","Les Gorman"],
+  "North Sydney Bears":           ["Ken Irvine","Johnny Dorahy","Dean Bell","Craig Hancock","Geoff Toovey","Anthony Seibold","Paul Harragon","Daniel Anderson","Matthew Johns","Mark Hughes"],
+  "Balmain Tigers":               ["Arthur Beetson","Wayne Pearce","Paul Sironen","Garry Jack","Ben Elias","Steve Roach","Craig Field","Glenn Lazarus","Tim Brasher","Jason Taylor","Jim Serdaris"],
+  "Penrith Panthers":             ["Greg Alexander","Mark Geyer","Brad Fittler","John Cartwright","Craig Gower","Luke Priddis","Michael Jennings","Luke Lewis","Jamie Soward","Peter Wallace","Jamie Buhrer","Nathan Cleary","Jarome Luai","Brian To'o","Stephen Crichton","Isaah Yeo","James Fisher-Harris","Liam Martin","Scott Sorensen","Viliame Kikau","Dylan Edwards","Matt Burton","Api Koroisau"],
+  "Cronulla-Sutherland Sharks":   ["Steve Rogers","Greg Pierce","Andrew Ettingshausen","Mark McGaw","Ricky Walford","Paul Gallen","Wade Graham","Luke Lewis","Ben Pomeroy","Chad Townsend","Valentine Holmes","Matt Moylan","Josh Dugan","Shaun Johnson","William Kennedy","Nicho Hynes","Briton Nikora","Teig Wilton","Siosifa Talakai","Jesse Ramien","Ronaldo Mulitalo"],
+  "Gold Coast Chargers":          ["John Cartwright","Mark Hohn","Tony Currie","Paul Osborne","Adrian Brunker","Paul Green","Rod Wishart","John Simon"],
+  "Gold Coast Titans":            ["Preston Campbell","Scott Prince","Luke Bailey","Mark Ioane","Nate Myles","Greg Bird","Beau Champion","Kevin Gordon","William Zillman","Jamal Idris","David Taylor","Ash Taylor","AJ Brimson","Tino Fa'asuamaleaui","Jayden Campbell","David Fifita","Jeremiah Nanai","Tanah Boyd"],
+  "Brisbane Broncos":             ["Wally Lewis","Gene Miles","Allan Langer","Mal Meninga","Steve Renouf","Kevin Walters","Wendell Sailor","Michael De Vere","Darren Lockyer","Gordon Tallis","Petero Civoniceva","Justin Hodges","Sam Thaiday","Matt Gillett","Darius Boyd","Corey Oates","Anthony Milford","James Roberts","Andrew McCullough","David Fifita","Payne Haas","Xavier Coates","Adam Reynolds","Ezra Mam","Selwyn Cobbo"],
+  "Canberra Raiders":             ["Mal Meninga","Laurie Daley","Bradley Clyde","Ricky Stuart","Gary Belcher","Des Hasler","Jason Croker","Brett Mullins","Matthew Elliott","Clinton Schifcofske","Todd Carney","Terry Campese","Josh Dugan","Josh Papalii","Joseph Leilua","Elliott Whitehead","Nick Cotric","John Bateman","Jarrod Croker","Hudson Young","Charnze Nicoll-Klokstad","Xavier Savage","Tom Starling"],
+  "Newcastle Knights":            ["Matthew Johns","Andrew Johns","Marc Glanville","Paul Harragon","Adam MacDougall","Danny Buderus","Mark Hughes","Kurt Gidley","Matthew Gidley","Timana Tahu","Steve Simpson","Akuila Uate","Darius Boyd","Robbie Farah","Kalyn Ponga","Mitchell Pearce","David Klemmer","Bradman Best","Tyson Frizell","Daniel Saifiti","Jacob Saifiti","Dane Gagai"],
+  "Illawarra Steelers":           ["Craig Fitzgibbon","Rod Wishart","David Peachey","Trent Barrett","Nathan Hindmarsh","Bryan Fletcher","Craig Gordon","Jamie Ainscough"],
+  "South Queensland Crushers":    ["Julian O'Neill","Jason Hetherington","Adrian Vowles","Mark Hohn","Gavin Allen"],
+  "Hunter Mariners":              ["Matthew Johns","Paul Harragon","Tony Butterfield","Adam MacDougall"],
+  "Wests Tigers":                 ["Benji Marshall","Pat Richards","Daniel Fitzhenry","John Skandalis","Robbie Farah","Lote Tuqiri","Chris Lawrence","Aaron Woods","James Tedesco","Luke Brooks","David Nofoaluma","Ken Maumalo","Adam Doueihi","Daine Laurie","Jackson Hastings","Api Koroisau","Stefano Utoikamanu","Justin Olam","Apisai Koroisau"],
+  "Melbourne Storm":              ["Billy Slater","Cameron Smith","Cooper Cronk","Ryan Hoffman","Dallas Johnson","Anthony Quinn","Matt King","Steve Turner","Israel Folau","Greg Inglis","Justin O'Neill","Will Chambers","Kevin Proctor","Jesse Bromwich","Nelson Asofa-Solomona","Felise Kaufusi","Brandon Smith","Jahrome Hughes","Ryan Papenhuyzen","Cameron Munster","Christian Welch","Harry Grant","Marion Seve","Nick Meaney"],
+  "North Queensland Cowboys":     ["Johnathan Thurston","Matt Scott","Michael Morgan","Justin O'Neill","Kyle Feldt","Gavin Cooper","James Tamou","Matthew Wright","Jason Taumalolo","Jordan McLean","Jake Granville","Coen Hess","Javid Bowen","Scott Drinkwater","Valentine Holmes","Tom Dearden","Reuben Cotter","Jeremiah Nanai","Murray Taulagi","Heilum Luki"],
+  "New Zealand Warriors":         ["Matthew Ridge","Craig Innes","Gavin Hill","Marc Ellis","Tony Tatupu","Stacey Jones","Steve Price","Awen Guttenbeil","Ali Lauiti'iti","Clinton Toopi","Brent Webb","Lance Hohaia","Manu Vatuvei","Simon Mannering","Shaun Johnson","Konrad Hurrell","Tohu Harris","Roger Tuivasa-Sheck","Peta Hiku","Adam Blair","Addin Fonoti-Siofele","Reece Walsh","Shaun Johnson","Te Maire Martin","Wayde Egan"],
+  "Dolphins":                     ["Wayne Bennett","Jesse Bromwich","Felise Kaufusi","Jeremy Marshall-King","Hamiso Tabuai-Fidow","Tom Gilbert","Herbie Farnworth","Jamayne Isaako","Jake Averillo","Ray Stone","Euan Aitken","Brenko Lee","Mark Nicholls","Kenny Bromwich","Kurt Donoghoe"],
+  "Redcliffe Dolphins":           ["Adrian Brunker","Craig Teevan","Michael Devery","Dane Carlaw","Tonie Carroll","Matt Lockyer","Dean Collis","Luke Page"],
+  "Brisbane Souths":              ["Wally Lewis","Gene Miles","Mark Murray","Arthur Beetson","Chris Close","Bob Lindner","Greg Veivers"],
+  "Norths Devils":                ["Kerrod Walters","Kevin Walters","Martin Bella","Glen Lazarus","Steve Renouf","Darren Smith","Paul Bowman"],
+  "Wynnum Manly Seagulls":        ["Wally Lewis","Gene Miles","Mark Murray","Trevor Gillmeister","Michael Hagan","Barry Ward","Brad Davis"],
+  "Ipswich Jets":                 ["Allan Langer","Shane Webcke","Wayne Bennett","Jason Smith","Steve Renouf","Martin Bella","Chris Johns"],
+  "Burleigh Bears":               ["Danny Nutley","Danny Peacock","Tonie Carroll","Stuart Kelly","Paul Bowman","Mike Paget"],
+  "Tweed Heads Seagulls":         ["Michael Hancock","Craig Teevan","Adam Mogg","Brett Kimmorley","Anthony Tupou","Martin Lang"],
+  "Easts Tigers":                 ["Wally Lewis","Trevor Gillmeister","Gene Miles","Arthur Beetson","Kevin Walters","Gavin Allen","Bob Lindner"],
+  "Sunshine Coast Falcons":       ["Wayne Pearce","Chris Johns","Michael Hagan","Matt Lockyer","Craig Frawley"],
+  "Mackay Cutters":               ["Brad Thorn","Scott Anderson","Joel Clinton","Ash Graham","Matthew Bowen"],
+  "Souths United":                ["Wally Lewis","Gene Miles","Kevin Walters","Bob Lindner","Arthur Beetson"],
+  "Valleys Diehards":             ["Kevin Walters","Kerrod Walters","Tony Currie","Adrian Vowles","Greg Veivers","Scott Tronc"],
+  "Past Brothers":                ["Allan Langer","Chris Johns","Jason Smith","Brad Davis","Barry Ward"],
+  "Wests Panthers":               ["Kevin Walters","Gene Miles","Bob Lindner","Greg Veivers","Gavin Allen"],
+  "Toowoomba Clydesdales":        ["Scott Sattler","Phil Dyas","Adam Mogg","David Shillington","Colin Best"],
+  "Wigan Warriors":               ["Ellery Hanley","Shaun Edwards","Andy Gregory","Dean Bell","Martin Offiah","Gary Connolly","Kris Radlinski","Jason Robinson","Andy Farrell","Adrian Lam","David Furner","Terry Newton","Stuart Fielden","Sean O'Loughlin","Pat Richards","Thomas Leuluai","George Carmont","Liam Farrell","John Bateman","Sam Powell","Bevan French","Jai Field","Kaide Ellis","Abbas Miski","Liam Marshall"],
+  "St Helens":                    ["Mal Meninga","Ellery Hanley","Chris Joyner","Paul Loughlin","Glyn Lowe","Tommy Martyn","Sean Long","Paul Sculthorpe","Darren Albert","Willie Talau","Jon Wilkin","James Roby","Kyle Eastmond","Josh Jones","Louie McCarthy-Scarsbrook","Mark Percival","Tommy Makinson","Jonny Lomax","Lachlan Coote","Sione Mata'utia","Alex Walmsley","Morgan Knowles","Joel Thompson","Ben Davies","Jack Welsby"],
+  "Leeds Rhinos":                 ["Garry Schofield","Ellery Hanley","Paul Medley","John Joyner","Kevin Iro","Alan Tait","Iestyn Harris","Daryl Powell","Leroy Rivett","Keith Senior","Ryan Bailey","Barrie McDermott","Danny McGuire","Kevin Sinfield","Jamie Jones-Buchanan","Rob Burrow","Marcus Bai","Matt Diskin","Carl Ablett","Zak Hardaker","Kallum Watkins","Joel Moon","Tom Briscoe","Stevie Ward","Harry Newman","Aidan Sezer","Rohan Smith"],
+  "Bradford Bulls":               ["Brian Noble","Robbie Paul","Henry Paul","Leon Pryce","Nathan McAvoy","Michael Withers","Paul Deacon","Stuart Reardon","Lesley Vainikolo","Adrian Morley","David Solomona","Jamie Langley","Glenn Morrison","Ian Henderson","James Lowes"],
+  "Castleford Tigers":            ["Gareth Ellis","Danny Orr","Ryan Hudson","Andrew Dunemann","Damian Gibson","Willie Talau","Kirk Yeaman","Michael Shenton","Rangi Chase","Marc Sneyd","Luke Gale","Peter Mata'utia","Niall Evalds","Jake Trueman","Gareth O'Brien","Liam Watts","Alex Sutcliffe","Cheyse Blair"],
+  "Wakefield Trinity":            ["Neil Fox","David Topliss","Gary Spencer","Nigel Bell","Toa Kohe-Love","Sam Obst","Jacob Miller","David Fifita","Tom Johnstone","Kyle Wood","Tinirau Arona","Mason Lino"],
+  "Huddersfield Giants":          ["Jermaine McGillvary","Leroy Cudjoe","Danny Brough","Kevin Brown","Eorl Crabtree","Jason Chan","Luke Robinson","Brett Hodgson","Chris Bailey","Stephen Wild","Lee Gilmour","Scott Grix","Michael Lawrence","Dale Ferguson","Adam O'Brien"],
+  "Hull FC":                      ["Steve Prescott","Tony Smith","Paul Cooke","Richard Horne","Danny Washbrook","Kirk Yeaman","Gareth Raynor","Lee Radford","Mark O'Meley","Willie Manu","Peter Devery","Setaimata Sa","Ben Crooks","Jamie Shaul","Marc Sneyd","Albert Kelly","Ligi Sao","Josh Griffin","Jordan Lane","Adam Swift","Jake Connor"],
+  "Hull KR":                      ["Roger Millward","David Watkinson","Mike Smith","Chris Burton","Gareth Ellis","Shaun Lunt","Adam Quinlan","Ryan Shaw","Chris Atkin","Albert Vete","Kane Linnett","Elliot Minchella","Danny McGuire","Shaun Kenny-Dowall","Mikey Lewis","Niall Evalds"],
+  "Widnes Vikings":               ["Kurt Sorensen","Tony Myler","Joe Lydon","Martin Offiah","Darren Wright","Emosi Koloto","Alan Tait","Denis Betts","Phil McKenzie","Leo Epere","Tommy Doyle","Kevin Brown","Stefan Marsh"],
+  "Salford Red Devils":           ["David Watkins","Ken Gill","Maurice Richards","Steve Nash","Ian Blease","Gavin Clinch","Luke Robinson","Marc Sneyd","Robert Lui","Ken Sio","Lee Mossop","Elijah Taylor","Kallum Watkins","Brodie Croft","Ryan Lannon"],
+  "Warrington Wolves":            ["Kevin Ashcroft","Alex Murphy","Billy Benyon","Lee Briers","Paul Wood","Chris Hicks","Matt King","Michael Monaghan","Chris Bridge","Ryan Atkins","Richie Myler","Joel Monaghan","Mickey Higham","Ben Westwood","Stefan Ratchford","Daryl Clark","Josh Charnley","Blake Austin","Toby King","Gareth Widdop","Josh Thewlis","Matt Davis"],
+  "Halifax":                      ["Brian Lockwood","John Pendlebury","Colin Whitfield","Mark Preston","Seamus McCallion","Martin Moana","Damian Gibson"],
+  "Featherstone Rovers":          ["Don Fox","Terry Clawson","John Newlove","Eric Batten","Jimmy Thompson","Steve Quinn","Graham Steadman","Paddy Handley","Richie Barnett","Carl Briggs","Stuart Dickens"],
+  "Leigh Centurions":             ["Alex Murphy","Mick Collins","Dave Chisnall","John Woods","Simon Baldwin","Ian Mort","Neil Turley","Willie Swann","Chris Nero","Harrison Hansen","Liam Hood","Ben Reynolds","Junior Sa'u","Mark Ioane","Tom Nisbet"],
+  "London Broncos":               ["Mark Johnson","Terry Matterson","Greg Florimo","Craig Coleman","Tony Rea","Shaun Edwards","Terry Newton","Rob Purdham","Jim Dymock","Mark McLinden","Jon Wells","Julien Rinaldi","Tony Clubb","Api Pewhairangi","Kieran Dixon","Jordan Abdull","Rhys Williams"],
+  "Catalans Dragons":             ["Stacey Jones","Jason Croker","Luke Quigley","Michael Monaghan","Jamal Fakir","Sebastien Raguin","Gregory Mounis","Scott Dureau","Clint Greenshields","Morgan Escare","Zeb Taia","Remi Casty","David Mead","Kenny Edwards","Sam Moa","Josh Drinkwater","Samisoni Langi","Michael McIlorum","Benjamin Garcia","Matt Whitley","Arthur Mourgue","Tom Davies","Mitchell Pearce","Israel Folau","Mike McMeeken"],
+  "Toulouse Olympique":           ["Silvio Spagnolo","Stan Robin","Anthony Marion","Mathieu Jussaume","Harrison Hansen","Mark Kheirallah","Tony Gigot","Johnathon Ford","Lucas Albert","Romain Navarrete","Maxime Puech","Joe Bretherton","Dominique Peyroux"],
+  "Port Moresby Vipers":          ["Marcus Bai","John Wilshere","Stanley Gene","Nande Yer","Elias Paiyo","Charlie Simon","Makali Aizue"],
+  "Lae Tigers":                   ["Enoch Maki","James Nightingale","Ray Thompson","Willie Minoga","Jim Genia","John Wilshere"],
+  "Goroka Lahanis":               ["James Nightingale","Willie Tonga","Rodney Ware","Nande Yer","Michael Mark"],
+  "Mendi Muruks":                 ["Watson Boas","Terry Wapi","Paul Aiton","Edwin Ipape","Simon Kenni","Noel Zeming"],
+  "Australia Kangaroos":          ["Wally Lewis","Mal Meninga","Gene Miles","Laurie Daley","Bradley Clyde","Andrew Johns","Matthew Johns","Darren Lockyer","Cameron Smith","Billy Slater","Cooper Cronk","Johnathan Thurston","Greg Inglis","Cameron Munster","Nathan Cleary","Kalyn Ponga","James Tedesco","Daly Cherry-Evans","Josh Addo-Carr","Tom Trbojevic"],
+  "Great Britain Lions":          ["Garry Schofield","Ellery Hanley","Martin Offiah","Denis Betts","Andy Farrell","Paul Sculthorpe","Adrian Morley","Brian McDermott","Kris Radlinski","Sean Long","Kevin Sinfield","Jamie Jones-Buchanan","Rob Burrow","Stuart Fielden","Terry Newton"],
+  "England":                      ["Sam Burgess","James Graham","Gareth Widdop","Stefan Ratchford","Mark Percival","Elliott Whitehead","Liam Farrell","Alex Walmsley","Sean O'Loughlin","Chris Hill","Ryan Hall","Josh Hodgson","Luke Thompson","John Bateman","Tom Johnstone","Dom Young","Mikolaj Oledzki","Victor Radley","Herbie Farnworth"],
+  "France":                       ["Remi Casty","Benjamin Garcia","Clement Soubeyras","Gregory Mounis","Jamal Fakir","Eloi Pelissier","Jordan Dezaria","Arthur Mourgue","Tom Guillemin","Mathieu Cozza","Lucas Albert","Tony Gigot","William Barthau","Stan Robin"],
+  "New Zealand Kiwis":            ["Matthew Ridge","Craig Innes","Marc Ellis","Stacey Jones","Ruben Wiki","Nigel Vagana","Ali Lauiti'iti","Clinton Toopi","Benji Marshall","Simon Mannering","Jesse Bromwich","Kevin Proctor","Jason Taumalolo","Shaun Johnson","Jordan Rapana","Dallin Watene-Zelezniak","Peta Hiku","Jesse Bromwich","Jamayne Isaako","Charnze Nicoll-Klokstad","Te Maire Martin","Joseph Manu","Ronaldo Mulitalo"],
+  "Papua New Guinea Kumuls":      ["Marcus Bai","Stanley Gene","Paul Aiton","Nate Myles","David Moore","John Wilshere","Rod Griffin","James Nightingale","Enoch Maki","Watson Boas","Edwin Ipape","Rhyse Martin","Justin Olam","Kyle Laybutt","Lachlan Lam","Kato Ottio","Wartovo Puara Jr"],
+  "Samoa":                        ["Tonie Carroll","Frank Pritchard","David Fa'alogo","Sam Rapira","David Simona","Ben Matulino","Josh Hoffman","Frank-Paul Nuuausala","Tim Lafai","Junior Sa'u","Manu Vatuvei","Jarome Luai","Brian To'o","Stephen Crichton","Siosifa Talakai","Spencer Leniu","Jeremy Marshall-King","Hamiso Tabuai-Fidow","Ronaldo Mulitalo"],
+  "Tonga Mate Ma'a":              ["Jason Taumalolo","Andrew Fifita","David Fusitu'a","Daniel Tupou","Tevita Pangai Jr","Addin Fonoti-Siofele","Sio Siua Taukeiaho","Kenny Bromwich","Jesse Bromwich","Josh Papali'i","Tevita Tatola","Isaiya Katoa","Tui Kamikamica","Will Penisini","Felise Kaufusi"],
+  "Fiji Bati":                    ["Wes Naiqama","Kevin Naiqama","Akuila Uate","Petero Civoniceva","Aaron Groom","Semi Tadulala","Jarryd Hayne","Eloni Vunakece","Suliasi Vunivalu","Maika Sivo","Viliame Kikau","Penioni Tagituimua","Tui Kamikamica","Te Maire Martin","Tariq Sims"],
+  "Cook Islands":                 ["David Mead","Quinton Riki","Dean Whare","Toby Rudolf","Brandon Wakeham","Edene Gebbie","George Jennings"],
+  "USA Hawks":                    ["Mark McLinden","Liam Finn","Eric Grothe Jr","James Tedesco","James Donaldson","Junior Paulo","Bureta Faraimo","Jonathan Ford","Hakim Miloudi","Joe Eichner","Brandon Shearer"],
+  "Jamaica Reggae Warriors":      ["James Gavet","Joel Tomkins","Michael Lawrence","Ryan Brierley","Kieran Rush","Matthew Storton","Fenton Rogers"],
+  "Lebanon Cedars":               ["Hazem El Masri","Robbie Farah","Aidan Guerra","Mitchell Moses","Aaron El-Masri","Elias Sukkar","Josh Mansour","Adam Doueihi","Jason Wehbe","Khaled Rajeh","Ben Nakubuwai","Charbel Tasipale","Patrick Mago","Bilal Habib"],
+  "Scotland":                     ["Danny Brough","Liam Hood","Ben Kavanagh","Dale Ferguson","Ryan Brierley","Nathan Graham","Oscar Thomas","Mark Flanagan","Matty Russell","Euan Aitken","Callum Glendinning","Josh Wood","Remi Casty"],
+  "Ireland":                      ["Scott Grix","Bob Beswick","Craig Stapleton","George King","Liam Finn","Oliver Roberts","Brad Singleton","Luke Dorn","Michael McIlorum","Louis McCarthy-Scarsbrook","Cian Tynan","Ryan James","Joe Philbin","Ronan Michael"],
+  "Wales":                        ["Jonathan Davies","John Devereux","Dai Young","Anthony Sullivan","Keiron Cunningham","Paul Sterling","Ian Watson","Gareth Thomas","Elliot Kear","Mike Butt","Ben Evans","Rhys Williams","Gil Dudson","Morgan Smithies","Curtis Davies"],
+  "NSW Blues":                    ["Wally Lewis","Brad Fittler","Andrew Johns","Laurie Daley","Peter Sterling","Mark Gasnier","Matthew Johns","David Peachey","Bryan Fletcher","Nathan Hindmarsh","Luke Bailey","Michael Crocker","Paul Harragon","Danny Buderus","Craig Fitzgibbon","Luke Lewis","Mitchell Pearce","Paul Gallen","James Tamou","James Maloney","Josh Addo-Carr","Latrell Mitchell","Nathan Cleary","Payne Haas","Tom Trbojevic","Jarome Luai"],
+  "Queensland Maroons":           ["Wally Lewis","Mal Meninga","Gene Miles","Darren Lockyer","Allan Langer","Kevin Walters","Steve Renouf","Gordon Tallis","Gorden Tallis","Petero Civoniceva","Cameron Smith","Billy Slater","Cooper Cronk","Johnathan Thurston","Greg Inglis","Darius Boyd","Matt Gillett","Sam Thaiday","Corey Parker","Cameron Munster","Kalyn Ponga","Daly Cherry-Evans","David Fifita","Dane Gagai","Valentine Holmes"],
+  "Australian Schoolboys":        ["Darren Lockyer","Johnathan Thurston","Cameron Smith","Greg Inglis","Benji Marshall","Cooper Cronk","Nathan Cleary","Jarome Luai","Tommy Turbo","Selwyn Cobbo"],
+  "NSW Schoolboys":               ["Brad Fittler","Andrew Johns","Craig Fitzgibbon","Luke Rooney","Michael Crocker","Craig Wing","Peter Wallace","Mitchell Pearce","James Tamou","Nathan Cleary"],
+  "Queensland Schoolboys":        ["Darren Lockyer","Johnathan Thurston","Billy Slater","Cameron Smith","Darius Boyd","Cooper Cronk","Kevin Gordon","Corey Norman","Kyle Feldt","Kalyn Ponga"],
+};
+
+// Fallback pool for teams with no specific roster (junior clubs etc.)
+const GENERIC_PLAYERS = [
+  "Danny Walsh","Chris Hearn","Mark Stewart","Tony Rowe","Joel Parker","Luke Connors",
+  "Sam Briggs","Jake Morris","Ben Fuller","Ryan Doyle","Scott Barnes","Troy Higgins",
+  "Matt Lawson","Brad Vincent","Paul Hicks","Adam Cole","James Moore","Nick Pearson",
+  "Lachlan Burns","Liam Davis","Will Fraser","Tom Knight","Jack Harrison","Dan Smith",
+  "Connor Shaw","Tyler Booth","Ethan Ryan","Blake Green","Josh Clarke","Sam Rogers",
+  "Dylan Thompson","Tyler Hill","Zac Edwards","Corey Lane","Reuben Walsh","Tom Stanley",
+  "Jack Pearce","Jordan Cook","Hayden Burns","Mitchell Hughes","Cody Stewart","Ben Walsh",
+  "Patrick Moore","Kyle Andrews","Liam Collins","Aaron Foster","Ryan Baker","James Hill",
+];
+
+const rn = a => a[Math.floor(Math.random()*a.length)];
+
+function getPlayerPool(teamName) {
+  // Try exact match first, then partial match
+  if (TEAM_PLAYERS[teamName]) return TEAM_PLAYERS[teamName];
+  const key = Object.keys(TEAM_PLAYERS).find(k => teamName.includes(k) || k.includes(teamName));
+  return key ? TEAM_PLAYERS[key] : GENERIC_PLAYERS;
+}
+
+function genSquad(teamName) {
+  const pool = [...getPlayerPool(teamName)];
+  // Shuffle and take up to 13, pad with generic if needed
+  for (let i=pool.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+  while (pool.length < 13) pool.push(rn(GENERIC_PLAYERS));
+  return pool.slice(0,13).map((name,i)=>({num:i+1,name}));
+}
+
+// ─── ENGINE ─────────────────────────────────────────────────
+let GAME_MS = 90 * 1000; // 90 seconds per game (adjustable)
+
+// ─── BRACKET ENGINE ─────────────────────────────────────────
+// True single-elimination: seed all teams, pair them, winners advance.
+// When one team remains, tournament resets.
+
+function shuffle(arr) {
+  for (let i=arr.length-1;i>0;i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function buildBracket() {
+  // Seed pool: all team-year combos, shuffled
+  const pool = shuffle([...ALL_TEAMS]);
+  // Pad to next power of 2 for clean bracket (byes go to null)
+  const size = Math.pow(2, Math.ceil(Math.log2(pool.length)));
+  while (pool.length < size) pool.push(null); // null = bye
+  // Round 1 matchups
+  const matchups = [];
+  for (let i=0;i<pool.length;i+=2) matchups.push([pool[i],pool[i+1]]);
+  return matchups; // array of [home, away] pairs (away may be null = bye)
+}
+
+let BRACKET = {
+  tournament: 1,         // which run through the tournament we're on
+  roundNum: 1,           // current round number
+  roundMatchups: [],     // remaining matchups this round [[home,away],...]
+  nextRoundWinners: [],  // winners accumulating for next round
+  completedRounds: [],   // [ { roundNum, matches:[{home,away,hS,aS,winner}] } ]
+  currentMatch: null,    // { home, away }
+};
+
+function initTournament() {
+  BRACKET.tournament++;
+  BRACKET.roundNum = 1;
+  BRACKET.roundMatchups = buildBracket();
+  BRACKET.nextRoundWinners = [];
+  BRACKET.completedRounds = [];
+  BRACKET.currentMatch = null;
+  S.scorers = {};
+  pushCommentary(`TOURNAMENT ${BRACKET.tournament} BEGINS. ${BRACKET.roundMatchups.length} first-round matches.`, 'muted', true);
+  saveState();
+}
+
+function nextMatchup() {
+  // Skip byes automatically
+  while (BRACKET.roundMatchups.length) {
+    const [home, away] = BRACKET.roundMatchups.shift();
+    if (!home && !away) continue;
+    if (!home) { BRACKET.nextRoundWinners.push(away); continue; }
+    if (!away) { BRACKET.nextRoundWinners.push(home); continue; }
+    return { home, away };
+  }
+  // Round exhausted - advance
+  if (BRACKET.nextRoundWinners.length <= 1) {
+    // Tournament over
+    if (BRACKET.nextRoundWinners.length === 1) {
+      const champ = BRACKET.nextRoundWinners[0];
+      pushCommentary(`${champ.year} ${champ.name} ARE THE INFINITE STADIUM CHAMPIONS!`, 'scoring-home', true);
+    }
+    initTournament();
+    return nextMatchup();
+  }
+  // Build next round
+  BRACKET.roundNum++;
+  const winners = shuffle([...BRACKET.nextRoundWinners]);
+  BRACKET.nextRoundWinners = [];
+  BRACKET.roundMatchups = [];
+  for (let i=0;i<winners.length;i+=2) {
+    BRACKET.roundMatchups.push([winners[i], winners[i+1]||null]);
+  }
+  return nextMatchup();
+}
+
+let S = {
+  gameNumber: 1,
+  elapsed: 0,
+  home: null, away: null,
+  homeScore: 0, awayScore: 0,
+  homeSquad: [], awaySquad: [],
+  log: [],
+  htScores: null,
+  nextEvent: 0,
+  upcoming: [],
+  results: [],
+  scorers: {}, // { "Player Name": { tries, conversions, fieldgoals, points } }
+  goldenPoint: false,
+};
+
+function newMatch() {
+  const matchup = nextMatchup();
+  S.home = matchup.home;
+  S.away = matchup.away;
+  S.homeScore = 0; S.awayScore = 0;
+  S.homeSquad = genSquad(S.home.name); S.awaySquad = genSquad(S.away.name);
+  S.log = []; S.htScores = null; S.elapsed = 0; S.goldenPoint = false;
+  S.nextEvent = 5 + Math.random()*8;
+  // Peek at next 5 upcoming without consuming them
+  S.upcoming = [];
+  const peek = [...BRACKET.roundMatchups];
+  for (let i=0;i<Math.min(5,peek.length);i++) {
+    const [h,a] = peek[i];
+    if (h&&a) S.upcoming.push({home:h,away:a});
+  }
+  lastCommAt = -999;
+  setTimeout(() => pushCommentary(rn(COMM.kickoff)(S.home.name, S.away.name), ''), 200);
+}
+
+function closeGame() {
+  if (!S.home) return;
+  pushCommentary(rn(COMM.fulltime)(S.home.name, S.away.name, S.homeScore, S.awayScore), 'muted');
+  const winner = S.homeScore >= S.awayScore ? S.home : S.away;
+  const loser  = S.homeScore >= S.awayScore ? S.away : S.home;
+  BRACKET.nextRoundWinners.push(winner);
+
+  // Store in completed rounds
+  let rd = BRACKET.completedRounds.find(r=>r.roundNum===BRACKET.roundNum);
+  if (!rd) { rd={roundNum:BRACKET.roundNum,matches:[]}; BRACKET.completedRounds.push(rd); }
+  rd.matches.push({
+    home:S.home, away:S.away,
+    hS:S.homeScore, aS:S.awayScore, winner, loser
+  });
+
+  const r = { home:S.home, away:S.away, homeScore:S.homeScore, awayScore:S.awayScore, winner };
+  S.results.unshift(r);
+  if (S.results.length>5) S.results.pop();
+
+  // Accumulate tournament scorers
+  S.log.forEach(e => {
+    if (!['try','conversion','fieldgoal'].includes(e.type)) return;
+    if (!S.scorers[e.player]) S.scorers[e.player] = { tries:0, conversions:0, fieldgoals:0, points:0 };
+    const sc = S.scorers[e.player];
+    if (e.type === 'try')        { sc.tries++;        sc.points += 4; }
+    if (e.type === 'conversion') { sc.conversions++;  sc.points += 2; }
+    if (e.type === 'fieldgoal')  { sc.fieldgoals++;   sc.points += 1; }
+  });
+
+  S.gameNumber++;
+  saveState();
+}
+
+function fireEvent() {
+  const isHome = Math.random() < 0.5;
+  const squad  = isHome ? S.homeSquad : S.awaySquad;
+  const player = rn(squad).name;
+  const min    = Math.round(S.elapsed);
+  const side   = isHome ? 'home' : 'away';
+  const roll   = Math.random();
+
+  if (S.goldenPoint) {
+    // In golden point: only tries (less likely) and field goals count
+    // Bias toward field goals — they're the realistic ET winner
+    const gpRoll = Math.random();
+    if (gpRoll < 0.35) {
+      // Field goal - golden point winner
+      if (isHome) S.homeScore += 1; else S.awayScore += 1;
+      S.log.push({ type:'fieldgoal', player, team:side, minute:min });
+      pushCommentary(rn(COMM.goldenPointScore)(player, isHome ? S.home.name : S.away.name), isHome ? 'scoring-home' : 'scoring-away', true);
+      // End match immediately
+      closeGame();
+      newMatch();
+      renderUpcoming();
+      renderResults();
+      renderScorers();
+    } else if (gpRoll < 0.55) {
+      // Try in ET - golden point winner
+      if (isHome) S.homeScore += 4; else S.awayScore += 4;
+      S.log.push({ type:'try', player, team:side, minute:min });
+      pushCommentary(rn(COMM.goldenPointScore)(player, isHome ? S.home.name : S.away.name), isHome ? 'scoring-home' : 'scoring-away', true);
+      closeGame();
+      newMatch();
+      renderUpcoming();
+      renderResults();
+      renderScorers();
+    } else {
+      // Near miss / non-scoring event in ET
+      commForEvent(gpRoll < 0.7 ? 'bighit' : 'injury', player, side, side);
+      S.nextEvent = S.elapsed + 2 + Math.random() * 4;
+    }
+    return;
+  }
+
+  // Normal time
+  if (roll < 0.50) {
+    if (isHome) S.homeScore += 4; else S.awayScore += 4;
+    S.log.push({ type:'try', player, team:side, minute:min });
+    commForEvent('try', player, side, side);
+    if (Math.random() < 0.65) {
+      const kicker = rn(squad).name;
+      if (isHome) S.homeScore += 2; else S.awayScore += 2;
+      S.log.push({ type:'conversion', player:kicker, team:side, minute:min+1 });
+      commForEvent('conversion', kicker, side, side);
+    }
+  } else if (roll < 0.65) {
+    const kicker = rn(squad).name;
+    if (isHome) S.homeScore += 2; else S.awayScore += 2;
+    S.log.push({ type:'penalty', player:kicker, team:side, minute:min });
+    commForEvent('penalty', kicker, side, side);
+  } else if (roll < 0.70) {
+    if (isHome) S.homeScore += 1; else S.awayScore += 1;
+    S.log.push({ type:'fieldgoal', player, team:side, minute:min });
+    commForEvent('fieldgoal', player, side, side);
+  } else if (roll < 0.80) {
+    commForEvent('sinbin', player, side, side);
+  } else if (roll < 0.88) {
+    commForEvent('injury', player, side, side);
+  } else {
+    commForEvent('bighit', player, side, side);
+  }
+  S.nextEvent = S.elapsed + 6 + Math.random()*9;
+}
+
+// ─── COMMENTARY ENGINE ──────────────────────────────────────
+const COMM = {
+  tryScored: [
+    (p, team, min) => `${p} crashes over for ${team}! What a way to break the deadlock.`,
+    (p, team, min) => `${p} goes in under the posts! ${team} will take that.`,
+    (p, team, min) => `TRY! ${p} with a brilliant finish in the corner for ${team}.`,
+    (p, team, min) => `${p} dots it down! ${team} celebrating on the field.`,
+    (p, team, min) => `Beautiful work by ${p}, he finds a way over. ${team} ahead.`,
+    (p, team, min) => `${p} busts through two defenders and scores! The crowd — if there were one — would be on their feet.`,
+    (p, team, min) => `TRY to ${team}! ${p} finishes it off in the ${min}th minute.`,
+    (p, team, min) => `${p} with a freakish solo effort — ${team} have the lead!`,
+    (p, team, min) => `A good set of six ends with ${p} going over. Try to ${team}.`,
+    (p, team, min) => `${p} beats his man and plants it. Try! ${team} with a crucial score.`,
+    (p, team, min) => `The pass goes wide, ${p} takes it in stride and scores out wide.`,
+    (p, team, min) => `${p} simply too strong close to the line. ${team} score.`,
+  ],
+  tryScored_late: [
+    (p, team, min) => `${p} scores in the ${min}th! This one is coming to life.`,
+    (p, team, min) => `Late try to ${team}! ${p} makes it a contest with ${min} minutes left.`,
+    (p, team, min) => `${p} with a vital score — ${team} are right back in this.`,
+    (p, team, min) => `Drama! ${p} crosses late and ${team} are within reach.`,
+  ],
+  tryScored_closing: [
+    (p, team, min) => `${p} crosses in the dying stages! Can ${team} hold on?`,
+    (p, team, min) => `Incredible scenes — ${p} scores with the clock ticking down.`,
+    (p, team, min) => `${p} with a match-winning try? Let's see if the conversion goes over.`,
+  ],
+  conversionGood: [
+    (p, team) => `${p} with the boot, right between the posts. Two more.`,
+    (p, team) => `Conversion good! ${p} makes it look easy.`,
+    (p, team) => `${p} adds the extras. ${team} extend their lead.`,
+    (p, team) => `Up and over — ${p} doesn't miss those.`,
+    (p, team) => `${p} slots the conversion. Perfect technique.`,
+  ],
+  penaltyGood: [
+    (p, team) => `${p} steps up for the penalty and it's good. Two points to ${team}.`,
+    (p, team) => `Penalty goal! ${p} from in front, never in doubt.`,
+    (p, team) => `${team} take the two. ${p} with a composed penalty kick.`,
+    (p, team) => `${p} drills the penalty. ${team} add to their tally.`,
+  ],
+  fieldGoal: [
+    (p, team) => `${p} drops a field goal! One point is enough to give ${team} a lead.`,
+    (p, team) => `Incredible! ${p} threads a field goal through the uprights.`,
+    (p, team) => `${p} attempts the one-pointer — and it's good! ${team} scrape ahead.`,
+  ],
+  sinBin: [
+    (p, team) => `${p} sees yellow. ${team} will be down to twelve for the next ten minutes.`,
+    (p, team) => `The referee has seen enough — ${p} is sin-binned.`,
+    (p, team) => `${p} gets marched to the bin. Costly moment for ${team}.`,
+    (p, team) => `Sin bin! ${p} won't be happy with that decision.`,
+  ],
+  injury: [
+    (p) => `${p} is down on the turf. The trainers are coming on.`,
+    (p) => `Concern for ${p} who looks to have copped a knock there.`,
+    (p) => `${p} hobbles off the field. The bench will be called into action.`,
+    (p) => `Medics attending to ${p}. He may not return.`,
+  ],
+  bigHit: [
+    (p, opp) => `MASSIVE HIT! ${p} absolutely levels ${opp}. That'll be replayed.`,
+    (p, opp) => `${p} with a bone-crunching tackle on ${opp}. Neither man moves for a moment.`,
+    (p, opp) => `${opp} didn't see ${p} coming. A reminder of what this game is about.`,
+    (p, opp) => `Enormous defensive read from ${p}. ${opp} goes nowhere.`,
+  ],
+  sevenTackle: [
+    (team) => `Seven-tackle set for ${team} — they'll take that opportunity.`,
+    (team) => `Good field position for ${team} after a penalty. Six fresh tackles.`,
+    (team) => `${team} make good ground, set up nicely for the next set.`,
+  ],
+  lineDropout: [
+    () => `Drop out from the twenty. Play resumes.`,
+    () => `Line dropout — the defending team gets another chance to reorganise.`,
+  ],
+  generalPlay: [
+    (home, away, hScore, aScore) => `${home} ${hScore > aScore ? 'maintaining their lead' : hScore < aScore ? 'chasing the game' : 'level and searching'}. Solid sets from both sides.`,
+    (home, away, hScore, aScore) => `${away} working hard through the middle. ${hScore === aScore ? 'Nothing separating them.' : 'Trailing by ' + Math.abs(hScore-aScore) + ' points.'}`,
+    (home, away) => `Good ball movement from ${home}. They're testing the edges.`,
+    (home, away) => `${away} in good shape this set — watch for something creative here.`,
+    (home, away) => `Back and forth in the middle of the park. Good contest.`,
+    (home, away) => `Crisp passing from ${home}. Looking to shift the ball wide.`,
+    (home, away) => `${away} working off the back of a good kick chase.`,
+    (home, away) => `Completion rate has been excellent from both sides.`,
+  ],
+  goldenPoint: [
+    (home, away) => `GOLDEN POINT! Scores are level at full time. The next score wins — ${home} and ${away} go to extra time.`,
+    (home, away) => `We're level at the final whistle. Golden point extra time. One score ends it.`,
+    (home, away) => `Deadlock at eighty minutes. ${home} and ${away} cannot be separated. Golden point now.`,
+  ],
+  goldenPointScore: [
+    (p, team) => `GOLDEN POINT! ${p} scores and ${team} win it in extra time!`,
+    (p, team) => `${p} has done it! ${team} snatch it with a golden point score!`,
+    (p, team) => `Extraordinary scenes — ${p} wins it for ${team} in extra time!`,
+    (p, team) => `It's over! ${p} with the golden point score. ${team} advance!`,
+  ],
+  halftime: [
+    (home, away, hScore, aScore) => `HALF TIME! ${home} ${hScore} — ${aScore} ${away}. ${hScore > aScore ? home + ' lead at the break.' : hScore < aScore ? away + ' ahead at half time.' : 'All square at the interval. What a game this is.'}`,
+  ],
+  kickoff: [
+    (home, away) => `We're underway here in the Infinite Stadium. ${home} vs ${away}. Kickoff!`,
+    (home, away) => `And we're off! ${home} and ${away} get into it.`,
+    (home, away) => `Kickoff! ${home} take the first crack at it.`,
+    (home, away) => `The referee's whistle blows — ${home} vs ${away} is underway.`,
+  ],
+  fulltime: [
+    (home, away, hScore, aScore) => `FULL TIME! Final score: ${home} ${hScore} — ${aScore} ${away}. ${hScore > aScore ? home : away} progress to the next round.`,
+    (home, away, hScore, aScore) => `That's the final whistle! ${hScore > aScore ? home + ' win' : away + ' win'} ${Math.max(hScore,aScore)}-${Math.min(hScore,aScore)}. ${hScore > aScore ? away : home} are eliminated.`,
+    (home, away, hScore, aScore) => `Full time in a ${Math.abs(hScore-aScore) <= 4 ? 'tight' : 'one-sided'} contest. ${hScore > aScore ? home : away} take it ${Math.max(hScore,aScore)}-${Math.min(hScore,aScore)}.`,
+  ],
+};
+
+// ─── SPEECH SYNTHESIS ───────────────────────────────────────
+let audioEnabled = false;
+let selectedVoice = null;
+let speechQueue = [];
+let isSpeaking = false;
+
+function loadVoice() {
+  if (!window.speechSynthesis) return;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return;
+
+  const allEN = voices.filter(v => v.lang.startsWith('en') && !v.lang.includes('IN'));
+
+  // Default voice: Google UK English Male, then en-AU, then en-GB
+  const preferred = allEN.find(v => /google uk english male/i.test(v.name));
+  const auVoice = allEN.find(v => v.lang === 'en-AU');
+  const enGB = allEN.find(v => v.lang === 'en-GB');
+  selectedVoice = preferred || auVoice || enGB || allEN[0] || voices[0];
+}
+
+// Voices load async in many browsers
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = loadVoice;
+  loadVoice();
+}
+
+function speakNext() {
+  if (!window.speechSynthesis || !audioEnabled || isSpeaking || !speechQueue.length) return;
+  const text = speechQueue.shift();
+  const utt = new SpeechSynthesisUtterance(text);
+  if (selectedVoice) utt.voice = selectedVoice;
+  utt.rate  = 0.92;
+  utt.pitch = 0.88;
+  utt.volume = 1.0;
+  isSpeaking = true;
+  utt.onend = utt.onerror = () => { isSpeaking = false; speakNext(); };
+  window.speechSynthesis.speak(utt);
+}
+
+function queueSpeech(text) {
+  if (!window.speechSynthesis || !audioEnabled) return;
+  // Strip HTML entities and clean up
+  const clean = text.replace(/&[a-z]+;/gi, ' ').replace(/<[^>]+>/g, '').trim();
+  if (!clean) return;
+  // Only queue scoring/key events to avoid overlapping chatter — skip general play filler
+  speechQueue.push(clean);
+  // Cap queue to avoid backlog at high speeds
+  if (speechQueue.length > 2) speechQueue = speechQueue.slice(-2);
+  speakNext();
+}
+
+function toggleAudio(btn) {
+  audioEnabled = !audioEnabled;
+  btn.textContent = audioEnabled ? '🔊 AUDIO' : '🔇 AUDIO';
+  btn.style.color = audioEnabled ? 'var(--accent)' : '';
+  btn.style.borderColor = audioEnabled ? 'var(--accent)' : '';
+  if (!audioEnabled) {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    speechQueue = [];
+    isSpeaking = false;
+  } else {
+    // Trigger a voice load if not done yet
+    loadVoice();
+    // Announce the current match
+    const intro = `Now at the Infinite Rugby League Stadium — ${S.home.name} taking on ${S.away.name}.`;
+    queueSpeech(intro);
+  }
+}
+
+
+const COMM_INTERVAL_MINS = 8;
+let lastCommAt = -999;
+
+function pushCommentary(text, style='', speak=true) {
+  const feed = document.getElementById('commentaryFeed');
+  const min = Math.min(80, Math.round(S.elapsed));
+  const minStr = S.elapsed < 1 ? 'KO' : `${min}'`;
+  const isNeutral = style === 'neutral' || style === '';
+  const div = document.createElement('div');
+  div.className = 'commentary-line';
+  div.innerHTML = `
+    <div class="comm-min ${isNeutral?'neutral':''}">${minStr}</div>
+    <div class="comm-text ${style}">${text}</div>`;
+  feed.insertBefore(div, feed.firstChild);
+  while (feed.children.length > 40) feed.removeChild(feed.lastChild);
+  if (speak) queueSpeech(text);
+}
+
+function commForEvent(evType, player, team, side) {
+  const isHome = side === 'home';
+  const teamName = isHome ? S.home.name : S.away.name;
+  const oppSquad = isHome ? S.awaySquad : S.homeSquad;
+  const oppPlayer = rn(oppSquad).name;
+  const min = Math.min(79, Math.round(S.elapsed));
+  const cssClass = isHome ? 'scoring-home' : 'scoring-away';
+
+  if (evType === 'try') {
+    const pool = min >= 75 ? COMM.tryScored_closing : min >= 65 ? COMM.tryScored_late : COMM.tryScored;
+    pushCommentary(rn(pool)(player, teamName, min), cssClass, true);
+  } else if (evType === 'conversion') {
+    pushCommentary(rn(COMM.conversionGood)(player, teamName), 'muted', false);
+  } else if (evType === 'penalty') {
+    pushCommentary(rn(COMM.penaltyGood)(player, teamName), cssClass, true);
+  } else if (evType === 'fieldgoal') {
+    pushCommentary(rn(COMM.fieldGoal)(player, teamName), cssClass, true);
+  } else if (evType === 'sinbin') {
+    pushCommentary(rn(COMM.sinBin)(player, teamName), 'muted', true);
+  } else if (evType === 'injury') {
+    pushCommentary(rn(COMM.injury)(player), 'muted', false);
+  } else if (evType === 'bighit') {
+    pushCommentary(rn(COMM.bigHit)(player, oppPlayer), 'muted', false);
+  }
+}
+
+function maybeGeneralComm() {
+  if (S.elapsed - lastCommAt >= COMM_INTERVAL_MINS) {
+    lastCommAt = S.elapsed;
+    const roll = Math.random();
+    if (roll < 0.6) {
+      pushCommentary(rn(COMM.generalPlay)(S.home.name, S.away.name, S.homeScore, S.awayScore), '', false);
+    } else if (roll < 0.8) {
+      pushCommentary(rn(COMM.sevenTackle)(Math.random()<0.5 ? S.home.name : S.away.name), '', false);
+    } else {
+      pushCommentary(rn(COMM.lineDropout)(), '', false);
+    }
+  }
+}
+
+// ─── TEAM LOGOS (inline SVG, keyed by team name) ────────────
+const TEAM_LOGOS = {
+  "Sydney Roosters": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="38" fill="#CC0000"/><polygon points="50,15 58,38 82,38 63,53 70,76 50,62 30,76 37,53 18,38 42,38" fill="#FFD700"/></svg>`,
+  "Eastern Suburbs Roosters": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="38" fill="#CC0000"/><polygon points="50,15 58,38 82,38 63,53 70,76 50,62 30,76 37,53 18,38 42,38" fill="#FFD700"/></svg>`,
+  "South Sydney Rabbitohs": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#006400"/><circle cx="50" cy="50" r="36" fill="#CC0000"/><ellipse cx="50" cy="42" rx="14" ry="20" fill="#006400"/><ellipse cx="36" cy="26" rx="5" ry="14" fill="#006400"/><ellipse cx="64" cy="26" rx="5" ry="14" fill="#006400"/><circle cx="44" cy="38" r="3" fill="#fff"/><circle cx="56" cy="38" r="3" fill="#fff"/></svg>`,
+  "St George Dragons": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#fff"/><text x="50" y="62" font-size="44" text-anchor="middle" fill="#CC0000" font-family="serif" font-weight="bold">St G</text></svg>`,
+  "St George Illawarra Dragons": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="34" fill="#fff"/><path d="M30,60 Q50,20 70,60 Q60,45 50,55 Q40,45 30,60Z" fill="#CC0000"/><path d="M35,70 Q50,35 65,70" stroke="#CC0000" stroke-width="4" fill="none"/></svg>`,
+  "Canterbury-Bankstown Bulldogs": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><ellipse cx="50" cy="50" rx="30" ry="26" fill="#fff"/><ellipse cx="50" cy="46" rx="22" ry="16" fill="#003087"/><circle cx="40" cy="42" r="4" fill="#fff"/><circle cx="60" cy="42" r="4" fill="#fff"/><ellipse cx="50" cy="56" rx="12" ry="6" fill="#fff"/><rect x="38" y="53" width="24" height="3" fill="#003087"/></svg>`,
+  "Parramatta Eels": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#FFD700"/><path d="M20,50 Q35,30 50,50 Q65,70 80,50" stroke="#003087" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M20,50 Q35,70 50,50 Q65,30 80,50" stroke="#003087" stroke-width="8" fill="none" stroke-linecap="round"/></svg>`,
+  "Manly-Warringah Sea Eagles": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#800000"/><circle cx="50" cy="50" r="36" fill="#fff"/><path d="M20,55 Q50,20 80,55 L65,55 Q50,35 35,55Z" fill="#800000"/><path d="M50,20 L50,80" stroke="#800000" stroke-width="3"/></svg>`,
+  "Western Suburbs Magpies": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#fff"/><path d="M2,50 A48,48 0 0,1 98,50Z" fill="#1a1a1a"/><circle cx="50" cy="50" r="18" fill="#fff"/><circle cx="50" cy="50" r="12" fill="#1a1a1a"/></svg>`,
+  "Newtown Jets": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#1a1a6e"/><circle cx="50" cy="50" r="36" fill="#fff"/><text x="50" y="63" font-size="36" text-anchor="middle" fill="#1a1a6e" font-family="sans-serif" font-weight="bold">NJ</text></svg>`,
+  "North Sydney Bears": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#fff"/><ellipse cx="50" cy="52" rx="20" ry="18" fill="#8B4513"/><circle cx="43" cy="46" r="4" fill="#1a1a1a"/><circle cx="57" cy="46" r="4" fill="#1a1a1a"/><ellipse cx="50" cy="56" rx="8" ry="5" fill="#1a1a1a"/><ellipse cx="36" cy="38" rx="7" ry="8" fill="#8B4513"/><ellipse cx="64" cy="38" rx="7" ry="8" fill="#8B4513"/></svg>`,
+  "Balmain Tigers": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#FF7F00"/><circle cx="50" cy="50" r="36" fill="#1a1a1a"/><rect x="22" y="43" width="56" height="8" fill="#FF7F00" rx="2"/><rect x="26" y="33" width="48" height="6" fill="#FF7F00" rx="2"/><rect x="26" y="57" width="48" height="6" fill="#FF7F00" rx="2"/></svg>`,
+  "Penrith Panthers": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#1a1a1a"/><circle cx="50" cy="50" r="36" fill="#7B2FBE"/><path d="M30,35 L50,65 L70,35 L60,35 L50,55 L40,35Z" fill="#fff"/><circle cx="50" cy="30" r="8" fill="#fff"/></svg>`,
+  "Cronulla-Sutherland Sharks": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#00BFFF"/><circle cx="50" cy="50" r="36" fill="#003087"/><path d="M20,50 L50,25 L50,40 L75,30 L55,50 L75,50 L45,75 L45,58 L20,68Z" fill="#00BFFF"/></svg>`,
+  "Gold Coast Chargers": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#FFD700"/><path d="M35,70 L50,25 L65,70 L55,70 L50,45 L45,70Z" fill="#003087"/></svg>`,
+  "Gold Coast Titans": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#FFD700"/><path d="M50,20 L60,44 L86,44 L65,58 L73,82 L50,68 L27,82 L35,58 L14,44 L40,44Z" fill="#003087"/></svg>`,
+  "Brisbane Broncos": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#4B0082"/><circle cx="50" cy="50" r="36" fill="#FFD700"/><path d="M30,65 L30,35 L55,35 Q72,35 72,50 Q72,65 55,65Z" fill="#4B0082"/><path d="M30,50 L58,50" stroke="#FFD700" stroke-width="5"/></svg>`,
+  "Canberra Raiders": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#006400"/><circle cx="50" cy="50" r="36" fill="#C0C0C0"/><path d="M32,65 L32,35 L50,35 L50,45 L42,45 L42,54 L50,54 L50,65Z" fill="#006400"/><path d="M54,35 L68,35 L68,65 L58,65 L58,45 L54,45Z" fill="#006400"/></svg>`,
+  "Newcastle Knights": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#CC0000"/><path d="M30,65 L30,35 L40,35 L50,55 L50,35 L60,35 L60,55 L70,35 L80,35 L80,65 L70,65 L60,48 L60,65Z" fill="#fff"/></svg>`,
+  "Illawarra Steelers": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#003087"/><rect x="30" y="44" width="40" height="12" fill="#CC0000" rx="3"/><rect x="36" y="33" width="28" height="10" fill="#CC0000" rx="3"/><rect x="36" y="57" width="28" height="10" fill="#CC0000" rx="3"/></svg>`,
+  "Wests Tigers": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#FF7F00"/><circle cx="50" cy="50" r="36" fill="#1a1a1a"/><path d="M25,38 L45,38 L50,28 L55,38 L75,38 L60,52 L66,72 L50,60 L34,72 L40,52Z" fill="#FF7F00"/></svg>`,
+  "Melbourne Storm": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#4B0082"/><circle cx="50" cy="50" r="36" fill="#fff"/><path d="M50,20 L60,38 L50,35 L40,38Z" fill="#4B0082"/><path d="M35,38 L65,38 L72,55 L50,80 L28,55Z" fill="#4B0082"/><path d="M42,48 L58,48 L55,62 L50,68 L45,62Z" fill="#fff"/></svg>`,
+  "North Queensland Cowboys": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#FFD700"/><path d="M25,45 Q50,15 75,45 Q75,35 50,25 Q25,35 25,45Z" fill="#003087"/><rect x="36" y="44" width="28" height="4" fill="#003087" rx="2"/><circle cx="50" cy="62" r="12" fill="#003087"/><path d="M44,58 L56,58 L56,70 Q50,75 44,70Z" fill="#FFD700"/></svg>`,
+  "New Zealand Warriors": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#1a1a1a"/><circle cx="50" cy="50" r="36" fill="#C0C0C0"/><path d="M50,20 L55,35 L70,30 L60,42 L75,48 L60,50 L68,65 L52,56 L50,75 L48,56 L32,65 L40,50 L25,48 L40,42 L30,30 L45,35Z" fill="#1a1a1a"/></svg>`,
+  "Dolphins": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#fff"/><path d="M20,55 Q30,30 55,35 Q75,38 78,52 Q75,65 55,62 Q40,60 35,70 Q25,65 30,55 Q35,45 55,48 Q68,50 68,52 Q68,56 55,56 Q40,54 35,60Z" fill="#CC0000"/><circle cx="62" cy="42" r="4" fill="#CC0000"/></svg>`,
+  "Redcliffe Dolphins": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#CC0000"/><path d="M20,55 Q30,30 55,35 Q75,38 78,52 Q75,65 55,62 Q40,60 35,70 Q25,65 30,55 Q35,45 55,48 Q68,50 68,52 Q68,56 55,56 Q40,54 35,60Z" fill="#fff"/></svg>`,
+  "Wigan Warriors": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#003087"/><path d="M30,35 L70,35 L70,45 L55,45 L55,65 L45,65 L45,45 L30,45Z" fill="#fff"/></svg>`,
+  "St Helens": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#fff"/><path d="M30,42 L70,42 L70,52 L30,52Z" fill="#CC0000"/><path d="M44,30 L56,30 L56,70 L44,70Z" fill="#CC0000"/></svg>`,
+  "Leeds Rhinos": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#FFD700"/><path d="M35,30 L65,30 Q75,30 75,50 Q75,70 50,75 Q25,70 25,50 Q25,30 35,30Z" fill="#003087"/><path d="M40,40 L60,40 Q66,40 66,50 Q66,62 50,66 Q34,62 34,50 Q34,40 40,40Z" fill="#FFD700"/></svg>`,
+  "Bradford Bulls": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#fff"/><ellipse cx="50" cy="50" rx="20" ry="18" fill="#CC0000"/><ellipse cx="38" cy="36" rx="8" ry="9" fill="#CC0000"/><ellipse cx="62" cy="36" rx="8" ry="9" fill="#CC0000"/><circle cx="44" cy="46" r="3" fill="#fff"/><circle cx="56" cy="46" r="3" fill="#fff"/><path d="M42,56 Q50,62 58,56" stroke="#fff" stroke-width="2" fill="none"/></svg>`,
+  "Castleford Tigers": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#FFD700"/><circle cx="50" cy="50" r="36" fill="#1a1a1a"/><rect x="24" y="43" width="52" height="7" fill="#FFD700" rx="2"/><rect x="28" y="34" width="44" height="6" fill="#FFD700" rx="2"/><rect x="28" y="55" width="44" height="6" fill="#FFD700" rx="2"/></svg>`,
+  "Huddersfield Giants": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#CC0000"/><path d="M30,35 L40,35 L40,48 L60,48 L60,35 L70,35 L70,65 L60,65 L60,55 L40,55 L40,65 L30,65Z" fill="#fff"/></svg>`,
+  "Hull FC": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#1a1a1a"/><circle cx="50" cy="50" r="36" fill="#fff"/><path d="M2,50 A48,48 0 0,1 98,50Z" fill="#1a1a1a"/><text x="50" y="68" font-size="22" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="bold">HULL</text></svg>`,
+  "Hull KR": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#fff"/><text x="50" y="58" font-size="26" text-anchor="middle" fill="#CC0000" font-family="sans-serif" font-weight="bold">KR</text></svg>`,
+  "Warrington Wolves": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#FFD700"/><path d="M28,40 Q28,26 42,26 Q50,26 50,34 Q50,26 58,26 Q72,26 72,40 Q72,54 50,70 Q28,54 28,40Z" fill="#003087"/></svg>`,
+  "Catalans Dragons": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#FFD700"/><path d="M25,55 Q30,35 50,30 Q70,35 75,55 Q65,45 50,45 Q35,45 25,55Z" fill="#CC0000"/><path d="M30,62 Q40,48 50,52 Q60,48 70,62 Q60,55 50,58 Q40,55 30,62Z" fill="#CC0000"/></svg>`,
+  "Toulouse Olympique": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#4B0082"/><circle cx="50" cy="50" r="36" fill="#CC0000"/><text x="50" y="58" font-size="28" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="bold">TO</text></svg>`,
+  "London Broncos": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#fff"/><path d="M35,70 L35,30 L45,30 L45,55 L65,30 L75,30 L75,70 L65,70 L65,45 L45,70Z" fill="#CC0000"/></svg>`,
+  "Australia Kangaroos": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#006400"/><circle cx="50" cy="50" r="36" fill="#FFD700"/><path d="M50,28 Q60,28 65,35 Q72,32 74,38 Q78,36 78,44 Q75,50 68,48 Q70,56 65,60 Q60,72 50,72 Q40,72 35,60 Q30,56 32,48 Q25,50 22,44 Q22,36 26,38 Q28,32 35,35 Q40,28 50,28Z" fill="#006400"/><circle cx="58" cy="42" r="3" fill="#FFD700"/></svg>`,
+  "Great Britain Lions": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#003087"/><path d="M35,42 Q35,30 50,28 Q65,30 65,42 Q65,52 55,58 L58,72 L42,72 L45,58 Q35,52 35,42Z" fill="#FFD700"/><circle cx="50" cy="38" r="6" fill="#CC0000"/></svg>`,
+  "England": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#fff"/><path d="M2,50 A48,48 0 0,1 98,50Z" fill="#CC0000"/><rect x="44" y="2" width="12" height="96" fill="#CC0000"/><rect x="2" y="44" width="96" height="12" fill="#CC0000"/></svg>`,
+  "France": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#fff"/><path d="M2,50 A48,48 0 0,0 50,2 A48,48 0 0,0 2,50Z" fill="#003087"/><path d="M98,50 A48,48 0 0,0 50,98 A48,48 0 0,0 98,50Z" fill="#CC0000"/></svg>`,
+  "New Zealand Kiwis": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#1a1a1a"/><circle cx="50" cy="50" r="36" fill="#fff"/><path d="M50,20 C50,20 65,35 65,50 C65,65 50,80 50,80 C50,80 35,65 35,50 C35,35 50,20 50,20Z" fill="#1a1a1a"/><circle cx="72" cy="28" r="4" fill="#CC0000"/><circle cx="80" cy="36" r="3" fill="#CC0000"/><circle cx="76" cy="20" r="2.5" fill="#CC0000"/><circle cx="84" cy="28" r="2" fill="#CC0000"/></svg>`,
+  "Papua New Guinea Kumuls": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#1a1a1a"/><path d="M2,50 A48,48 0 0,1 98,50Z" fill="#CC0000"/><circle cx="30" cy="35" r="5" fill="#FFD700"/><circle cx="45" cy="25" r="5" fill="#FFD700"/><circle cx="60" cy="28" r="5" fill="#FFD700"/><circle cx="70" cy="38" r="5" fill="#FFD700"/><path d="M48,55 Q50,42 52,55 Q58,48 52,62 Q50,66 48,62 Q42,48 48,55Z" fill="#FFD700"/></svg>`,
+  "Samoa": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#003087"/><circle cx="36" cy="36" r="5" fill="#fff"/><circle cx="36" cy="50" r="5" fill="#fff"/><circle cx="44" cy="28" r="5" fill="#fff"/><circle cx="44" cy="58" r="5" fill="#fff"/><circle cx="30" cy="44" r="5" fill="#fff"/></svg>`,
+  "Tonga Mate Ma'a": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#CC0000"/><rect x="20" y="44" width="26" height="12" fill="#fff"/><rect x="27" y="30" width="12" height="40" fill="#fff"/></svg>`,
+  "Fiji Bati": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#0066CC"/><circle cx="50" cy="50" r="36" fill="#fff"/><rect x="30" y="40" width="16" height="20" fill="#0066CC"/><rect x="54" y="40" width="16" height="20" fill="#0066CC"/><rect x="30" y="38" width="40" height="6" fill="#0066CC"/><circle cx="66" cy="34" r="10" fill="#006400"/></svg>`,
+  "Lebanon Cedars": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#fff"/><circle cx="50" cy="50" r="36" fill="#fff"/><path d="M50,25 Q55,32 65,35 Q58,38 62,48 Q55,44 50,50 Q45,44 38,48 Q42,38 35,35 Q45,32 50,25Z" fill="#006400"/><path d="M40,50 Q50,60 60,50 Q55,70 50,75 Q45,70 40,50Z" fill="#006400"/></svg>`,
+  "Wales": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#fff"/><path d="M2,50 A48,48 0 0,1 98,50Z" fill="#CC0000"/><path d="M40,52 Q50,30 60,52 Q55,42 50,48 Q45,42 40,52Z" fill="#006400"/><path d="M35,60 Q50,40 65,60" stroke="#006400" stroke-width="5" fill="none"/></svg>`,
+  "Scotland": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#003087"/><path d="M10,10 L90,90 M90,10 L10,90" stroke="#fff" stroke-width="8"/><circle cx="50" cy="50" r="8" fill="#003087"/></svg>`,
+  "Ireland": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#006400"/><circle cx="50" cy="50" r="36" fill="#fff"/><path d="M46,65 L46,35 Q46,25 54,25 Q58,25 58,30 Q62,25 67,28 Q70,36 62,42 Q68,44 68,52 Q68,65 54,65Z" fill="#FF8000"/></svg>`,
+  "NSW Blues": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#003087"/><text x="50" y="44" font-size="18" text-anchor="middle" fill="#FFD700" font-family="sans-serif" font-weight="bold">NSW</text><text x="50" y="66" font-size="18" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="bold">BLUES</text></svg>`,
+  "Queensland Maroons": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#6B0020"/><circle cx="50" cy="50" r="36" fill="#6B0020"/><text x="50" y="44" font-size="15" text-anchor="middle" fill="#FFD700" font-family="sans-serif" font-weight="bold">QLD</text><text x="50" y="64" font-size="13" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="bold">MAROONS</text></svg>`,
+  "Brisbane Souths": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#006400"/><text x="50" y="58" font-size="22" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="bold">BS</text></svg>`,
+  "Norths Devils": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#CC0000"/><path d="M38,38 L50,30 L62,38 L58,50 L62,62 L50,70 L38,62 L42,50Z" fill="#fff"/></svg>`,
+  "Ipswich Jets": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#1a1a1a"/><circle cx="50" cy="50" r="36" fill="#CC0000"/><path d="M25,50 L55,25 L55,42 L75,42 L45,75 L45,58 L25,58Z" fill="#fff"/></svg>`,
+  "Burleigh Bears": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#fff"/><ellipse cx="50" cy="52" rx="18" ry="16" fill="#8B4513"/><circle cx="43" cy="46" r="3.5" fill="#1a1a1a"/><circle cx="57" cy="46" r="3.5" fill="#1a1a1a"/><ellipse cx="38" cy="38" rx="6" ry="7" fill="#8B4513"/><ellipse cx="62" cy="38" rx="6" ry="7" fill="#8B4513"/></svg>`,
+  "Port Moresby Vipers": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#006400"/><circle cx="50" cy="50" r="36" fill="#FFD700"/><path d="M50,22 Q52,35 65,40 Q52,42 55,55 Q50,48 45,55 Q48,42 35,40 Q48,35 50,22Z" fill="#006400"/><path d="M42,55 Q50,70 58,55 Q54,65 50,72 Q46,65 42,55Z" fill="#006400"/></svg>`,
+  "Lae Tigers": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#FF7F00"/><circle cx="50" cy="50" r="36" fill="#1a1a1a"/><rect x="24" y="43" width="52" height="8" fill="#FF7F00" rx="2"/><rect x="28" y="33" width="44" height="7" fill="#FF7F00" rx="2"/><rect x="28" y="57" width="44" height="7" fill="#FF7F00" rx="2"/></svg>`,
+  "Goroka Lahanis": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#FFD700"/><text x="50" y="58" font-size="22" text-anchor="middle" fill="#CC0000" font-family="sans-serif" font-weight="bold">GL</text></svg>`,
+  "Mendi Muruks": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#CC0000"/><text x="50" y="58" font-size="20" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="bold">MM</text></svg>`,
+  "Wynnum Manly Seagulls": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#fff"/><path d="M15,50 Q30,35 50,40 Q70,35 85,50 Q70,42 50,46 Q30,42 15,50Z" fill="#003087"/><path d="M15,55 Q30,45 50,50 Q70,45 85,55 Q70,48 50,52 Q30,48 15,55Z" fill="#003087"/></svg>`,
+  "Sunshine Coast Falcons": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#FF7F00"/><circle cx="50" cy="50" r="36" fill="#003087"/><path d="M30,35 L50,65 L70,35 L57,48 L50,38 L43,48Z" fill="#FF7F00"/></svg>`,
+  "Mackay Cutters": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#CC0000"/><path d="M30,32 L70,68 M70,32 L30,68" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg>`,
+  "Toowoomba Clydesdales": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#8B4513"/><circle cx="50" cy="50" r="36" fill="#FFD700"/><path d="M35,65 L35,35 Q35,28 42,28 L50,28 L50,45 L58,28 Q65,28 65,35 L65,65 L55,65 L55,45 L50,55 L45,45 L45,65Z" fill="#8B4513"/></svg>`,
+  "Tweed Heads Seagulls": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#0066CC"/><circle cx="50" cy="50" r="36" fill="#fff"/><path d="M15,48 Q30,32 50,38 Q70,32 85,48 Q70,40 50,44 Q30,40 15,48Z" fill="#0066CC"/><path d="M15,56 Q30,44 50,50 Q70,44 85,56" stroke="#0066CC" stroke-width="5" fill="none"/></svg>`,
+  "Widnes Vikings": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#1a1a1a"/><circle cx="50" cy="50" r="36" fill="#CC0000"/><path d="M30,35 L40,35 L50,60 L60,35 L70,35 L55,70 L45,70Z" fill="#fff"/></svg>`,
+  "Salford Red Devils": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#1a1a1a"/><path d="M40,28 Q50,25 60,28 L65,40 Q58,36 50,36 Q42,36 35,40Z" fill="#CC0000"/><path d="M35,40 L65,40 L68,58 Q60,72 50,72 Q40,72 32,58Z" fill="#CC0000"/><path d="M44,48 L56,48 L54,60 Q50,64 46,60Z" fill="#1a1a1a"/></svg>`,
+  "Halifax": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#CC0000"/><path d="M30,35 L40,35 L40,48 L60,48 L60,35 L70,35 L70,65 L60,65 L60,55 L40,55 L40,65 L30,65Z" fill="#fff"/></svg>`,
+  "Featherstone Rovers": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#fff"/><path d="M50,20 Q65,30 65,50 Q65,70 50,80 Q50,60 42,50 Q50,40 50,20Z" fill="#003087"/></svg>`,
+  "Leigh Centurions": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#fff"/><text x="50" y="58" font-size="22" text-anchor="middle" fill="#CC0000" font-family="sans-serif" font-weight="bold">LC</text></svg>`,
+  "Wakefield Trinity": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#003087"/><polygon points="50,22 56,40 75,40 60,52 66,70 50,58 34,70 40,52 25,40 44,40" fill="#FFD700"/></svg>`,
+  "South Queensland Crushers": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#4B0082"/><circle cx="50" cy="50" r="36" fill="#CC0000"/><text x="50" y="58" font-size="20" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="bold">SQ</text></svg>`,
+  "Hunter Mariners": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#00BFFF"/><path d="M20,60 L50,30 L80,60 L70,60 L50,40 L30,60Z" fill="#003087"/><rect x="30" y="60" width="40" height="8" fill="#003087" rx="2"/></svg>`,
+  "Northern Eagles": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#003087"/><circle cx="50" cy="50" r="36" fill="#fff"/><path d="M20,55 L50,25 L80,55 L65,48 L50,35 L35,48Z" fill="#003087"/><path d="M30,65 L50,50 L70,65" stroke="#003087" stroke-width="6" fill="none"/></svg>`,
+  "Cook Islands": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#006400"/><circle cx="50" cy="50" r="36" fill="#003087"/><circle cx="40" cy="34" r="4" fill="#fff"/><circle cx="32" cy="44" r="4" fill="#fff"/><circle cx="34" cy="56" r="4" fill="#fff"/><circle cx="42" cy="64" r="4" fill="#fff"/><circle cx="52" cy="66" r="4" fill="#fff"/><circle cx="62" cy="62" r="4" fill="#fff"/><circle cx="68" cy="52" r="4" fill="#fff"/><circle cx="66" cy="40" r="4" fill="#fff"/><circle cx="58" cy="32" r="4" fill="#fff"/><circle cx="48" cy="30" r="4" fill="#fff"/><circle cx="50" cy="48" r="8" fill="#fff"/></svg>`,
+  "USA Hawks": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#CC0000"/><circle cx="50" cy="50" r="36" fill="#003087"/><path d="M25,50 L50,25 L75,50 L62,44 L50,32 L38,44Z" fill="#fff"/><path d="M32,58 L50,42 L68,58" stroke="#fff" stroke-width="5" fill="none"/></svg>`,
+  "Jamaica Reggae Warriors": `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#006400"/><circle cx="50" cy="50" r="36" fill="#1a1a1a"/><path d="M2,50 L50,2 L98,50 L50,98Z" fill="none" stroke="#FFD700" stroke-width="6"/><circle cx="50" cy="50" r="12" fill="#FFD700"/></svg>`,
+};
+
+// Generic fallback logo using team colours extracted from name
+function genericLogo(teamName) {
+  const colours = [
+    ['#CC0000','#fff'],['#003087','#FFD700'],['#006400','#fff'],
+    ['#FF7F00','#1a1a1a'],['#4B0082','#FFD700'],['#8B4513','#FFD700'],
+    ['#0066CC','#fff'],['#1a1a1a','#CC0000'],['#800000','#fff'],
+  ];
+  const hash = [...teamName].reduce((a,c)=>a+c.charCodeAt(0),0);
+  const [bg, fg] = colours[hash % colours.length];
+  const initials = teamName.split(' ').filter(w=>w.length>2).slice(0,2).map(w=>w[0]).join('');
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="${bg}"/><circle cx="50" cy="50" r="36" fill="${bg}" stroke="${fg}" stroke-width="4"/><text x="50" y="62" font-size="${initials.length>2?22:28}" text-anchor="middle" fill="${fg}" font-family="sans-serif" font-weight="bold">${initials}</text></svg>`;
+}
+
+function getLogo(teamName) {
+  if (TEAM_LOGOS[teamName]) return TEAM_LOGOS[teamName];
+  // Try partial match
+  const key = Object.keys(TEAM_LOGOS).find(k => teamName.includes(k.split(' ')[0]) && teamName.split(' ').some(w => k.includes(w)));
+  return key ? TEAM_LOGOS[key] : genericLogo(teamName);
+}
+
+// ─── RENDER ─────────────────────────────────────────────────
+function buildScoringCol(side) {
+  const entries = S.log.filter(e=>e.team===side);
+  if (!entries.length) return `<div style="color:var(--muted);font-size:9px">—</div>`;
+  const tries  = entries.filter(e=>e.type==='try');
+  const convs  = entries.filter(e=>e.type==='conversion');
+  const pens   = entries.filter(e=>e.type==='penalty');
+  const fgs    = entries.filter(e=>e.type==='fieldgoal');
+  const isAway = side === 'away';
+  let html = '';
+  const sec = (label, arr) => {
+    if (!arr.length) return '';
+    let s = `<div class="scoring-group"><div class="scoring-section-label">${label}</div>`;
+    arr.forEach(e => {
+      s += `<div class="score-event"><span class="pname">${e.player}</span><span class="pmin">${e.minute}'</span></div>`;
+    });
+    return s + `</div>`;
+  };
+  html += sec('TRIES', tries);
+  html += sec('CONVERSIONS', convs);
+  html += sec('PENALTY GOALS', pens);
+  html += sec('FIELD GOALS', fgs);
+  return html;
+}
+
+function buildDivider() {
+  const homeTries = S.log.filter(e=>e.team==='home'&&e.type==='try').length;
+  const awayTries = S.log.filter(e=>e.team==='away'&&e.type==='try').length;
+  const homeConvs = S.log.filter(e=>e.team==='home'&&e.type==='conversion').length;
+  const awayConvs = S.log.filter(e=>e.team==='away'&&e.type==='conversion').length;
+  const homePens  = S.log.filter(e=>e.team==='home'&&e.type==='penalty').length;
+  const awayPens  = S.log.filter(e=>e.team==='away'&&e.type==='penalty').length;
+
+  let html = `
+    <div class="div-stat">
+      <div class="div-num">${homeTries}&nbsp;&nbsp;${awayTries}</div>
+      <div class="div-lbl">TRIES</div>
+    </div>
+    <div class="div-stat">
+      <div class="div-num" style="font-size:12px">${homeConvs}/${homeTries}&nbsp;${awayConvs}/${awayTries}</div>
+      <div class="div-lbl">CONVS</div>
+    </div>`;
+  if (homePens || awayPens) {
+    html += `<div class="div-stat">
+      <div class="div-num" style="font-size:12px">${homePens}&nbsp;&nbsp;${awayPens}</div>
+      <div class="div-lbl">PENS</div>
+    </div>`;
+  }
+  return html;
+}
+
+function renderLive() {
+  const pct = S.goldenPoint ? 1 : Math.min(1, S.elapsed/80);
+  const fill = document.getElementById('progressFill');
+  fill.style.width = (pct*100)+'%';
+  fill.style.background = S.goldenPoint ? 'var(--danger)' : 'var(--accent)';
+  const min = Math.min(80, Math.round(S.elapsed));
+  const half = S.goldenPoint ? 'EXTRA TIME — GOLDEN POINT' : S.elapsed <= 40 ? '1ST HALF' : '2ND HALF';
+  document.getElementById('matchTime').textContent = S.goldenPoint ? `${Math.round(S.elapsed)}'` : `${min}'`;
+  const remaining = BRACKET.roundMatchups.length + BRACKET.nextRoundWinners.length + 1;
+  const roundName = BRACKET.roundNum === 1 ? 'ROUND 1' : BRACKET.roundNum === 2 ? 'ROUND 2' : BRACKET.roundNum === 3 ? 'ROUND 3' : BRACKET.roundNum === 4 ? 'QUARTER-FINALS' : BRACKET.roundNum === 5 ? 'SEMI-FINALS' : BRACKET.roundNum === 6 ? 'GRAND FINAL' : `ROUND ${BRACKET.roundNum}`;
+  document.getElementById('matchRound').textContent = `T${BRACKET.tournament} · ${roundName} · GAME #${S.gameNumber.toLocaleString()} · ${half}`;
+  document.getElementById('roundNum').textContent = BRACKET.roundNum;
+  document.getElementById('homeName').textContent  = S.home.name;
+  document.getElementById('homeEra').textContent   = S.home.year;
+  document.getElementById('homeComp').textContent  = S.home.comp;
+  document.getElementById('homeLogo').innerHTML    = getLogo(S.home.name);
+  document.getElementById('awayName').textContent  = S.away.name;
+  document.getElementById('awayEra').textContent   = S.away.year;
+  document.getElementById('awayComp').textContent  = S.away.comp;
+  document.getElementById('awayLogo').innerHTML    = getLogo(S.away.name);
+  document.getElementById('scoreHome').textContent = S.homeScore;
+  document.getElementById('scoreAway').textContent = S.awayScore;
+  document.getElementById('gameCounter').textContent = S.gameNumber.toLocaleString();
+  document.getElementById('homeScoringCol').innerHTML = buildScoringCol('home');
+  document.getElementById('awayScoringCol').innerHTML = buildScoringCol('away');
+  document.getElementById('scoringDivider').innerHTML = buildDivider();
+  // halftime
+  if (S.htScores && S.elapsed > 40) {
+    document.getElementById('halftimeRow').style.display = 'flex';
+    document.getElementById('htHome').textContent = S.htScores.home;
+    document.getElementById('htAway').textContent = S.htScores.away;
+  } else {
+    document.getElementById('halftimeRow').style.display = 'none';
+  }
+}
+
+function renderUpcoming() {
+  document.getElementById('upcomingList').innerHTML = S.upcoming.map((g,i)=>`
+    <div class="game-row">
+      <div class="game-num">NEXT ${i+1}</div>
+      <div>
+        <div class="game-home">${g.home.year} ${g.home.name} <span class="upcoming-label">${g.home.comp}</span></div>
+        <div class="game-vs">vs</div>
+        <div class="game-away">${g.away.year} ${g.away.name} <span class="upcoming-label">${g.away.comp}</span></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderResults() {
+  const el = document.getElementById('resultsList');
+  if (!S.results.length) { el.innerHTML=`<div class="game-row" style="color:var(--muted)">No results yet</div>`; return; }
+  el.innerHTML = S.results.map((r,i)=>{
+    const hw = r.homeScore > r.awayScore;
+    return `<div class="game-row">
+      <div class="game-num">-${i+1}</div>
+      <div>
+        <div class="game-home" style="opacity:${hw?1:0.4}">${r.home.year} ${r.home.name}</div>
+        <div class="game-vs">vs</div>
+        <div class="game-away" style="opacity:${!hw?1:0.4}">${r.away.year} ${r.away.name}</div>
+      </div>
+      <div class="game-score">
+        <span class="${hw?'result-win':'result-loss'}">${r.homeScore}</span>
+        <span style="color:var(--muted)">—</span>
+        <span class="${!hw?'result-win':'result-loss'}">${r.awayScore}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderScorers() {
+  const el = document.getElementById('scorersList');
+  if (!el) return;
+
+  // Merge current live match scoring into the display (without persisting)
+  const live = {};
+  S.log.forEach(e => {
+    if (!['try','conversion','fieldgoal'].includes(e.type)) return;
+    if (!live[e.player]) live[e.player] = { tries:0, conversions:0, fieldgoals:0, points:0 };
+    const sc = live[e.player];
+    if (e.type === 'try')        { sc.tries++;       sc.points += 4; }
+    if (e.type === 'conversion') { sc.conversions++;  sc.points += 2; }
+    if (e.type === 'fieldgoal')  { sc.fieldgoals++;   sc.points += 1; }
+  });
+
+  // Merge historical + live
+  const merged = { ...S.scorers };
+  Object.entries(live).forEach(([name, stats]) => {
+    if (!merged[name]) merged[name] = { tries:0, conversions:0, fieldgoals:0, points:0 };
+    merged[name] = {
+      tries:       merged[name].tries       + stats.tries,
+      conversions: merged[name].conversions + stats.conversions,
+      fieldgoals:  merged[name].fieldgoals  + stats.fieldgoals,
+      points:      merged[name].points      + stats.points,
+    };
+  });
+
+  const sorted = Object.entries(merged)
+    .sort((a,b) => b[1].points - a[1].points)
+    .slice(0, 10);
+
+  if (!sorted.length) {
+    el.innerHTML = `<div class="scorers-row"><div class="sc-rank"></div><div class="sc-name" style="color:var(--muted)">No scores yet</div></div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="scorers-row header">
+      <div></div>
+      <div>PLAYER</div>
+      <div style="text-align:center">T</div>
+      <div style="text-align:center">C</div>
+      <div style="text-align:center">FG</div>
+      <div style="text-align:right">PTS</div>
+    </div>` +
+    sorted.map(([name, sc], i) => `
+      <div class="scorers-row">
+        <div class="sc-rank">${i+1}</div>
+        <div class="sc-name">${name}</div>
+        <div class="sc-num">${sc.tries||'—'}</div>
+        <div class="sc-num">${sc.conversions||'—'}</div>
+        <div class="sc-num">${sc.fieldgoals||'—'}</div>
+        <div class="sc-pts">${sc.points}</div>
+      </div>`).join('');
+}
+
+function renderBracket() {
+  const container = document.getElementById('bracketContainer');
+  const note = document.getElementById('bracketNote');
+
+  if (!BRACKET.completedRounds.length && !S.home) {
+    container.innerHTML = `<div class="empty-bracket">NO COMPLETED MATCHES YET</div>`;
+    note.textContent = '';
+    return;
+  }
+
+  const ROUND_NAMES = {1:'ROUND 1',2:'ROUND 2',3:'ROUND 3',4:'QUARTERS',5:'SEMIS',6:'GRAND FINAL'};
+  let html = '';
+
+  BRACKET.completedRounds.forEach((rd, ri) => {
+    const label = ROUND_NAMES[rd.roundNum] || `ROUND ${rd.roundNum}`;
+    html += `<div class="bracket-round">
+      <div class="bracket-round-label">${label} <span style="color:var(--muted);font-size:9px">(${rd.matches.length})</span></div>
+      <div class="bracket-col">`;
+
+    // Show last 16 matches of each round
+    const shown = rd.matches.slice(-16);
+    shown.forEach(m => {
+      const hw = m.hS > m.aS;
+      html += `<div class="bracket-match">
+        <div class="bracket-team ${hw?'winner':'loser'}">
+          <span class="bt-name">${m.home.year} ${m.home.name}</span>
+          <span class="bt-score">${m.hS}</span>
+        </div>
+        <div class="bracket-team ${!hw?'winner':'loser'}">
+          <span class="bt-name">${m.away.year} ${m.away.name}</span>
+          <span class="bt-score">${m.aS}</span>
+        </div>
+      </div>`;
+    });
+
+    // Current live match if in this round
+    if (rd.roundNum === BRACKET.roundNum && S.home) {
+      html += `<div class="bracket-match live-now">
+        <div class="bracket-team pending">
+          <span class="bt-name">▶ ${S.home.year} ${S.home.name}</span>
+          <span class="bt-score" style="color:var(--home)">${S.homeScore}</span>
+        </div>
+        <div class="bracket-team pending">
+          <span class="bt-name">${S.away.year} ${S.away.name}</span>
+          <span class="bt-score" style="color:var(--away)">${S.awayScore}</span>
+        </div>
+      </div>`;
+    }
+
+    html += `</div></div>`;
+    if (ri < BRACKET.completedRounds.length - 1) html += `<div class="bracket-arrow">→</div>`;
+  });
+
+  // If current round not yet in completedRounds, add it
+  if (S.home && !BRACKET.completedRounds.find(r=>r.roundNum===BRACKET.roundNum)) {
+    if (BRACKET.completedRounds.length) html += `<div class="bracket-arrow">→</div>`;
+    const label = ROUND_NAMES[BRACKET.roundNum] || `ROUND ${BRACKET.roundNum}`;
+    html += `<div class="bracket-round">
+      <div class="bracket-round-label">${label}</div>
+      <div class="bracket-col">
+        <div class="bracket-match live-now">
+          <div class="bracket-team pending">
+            <span class="bt-name">▶ ${S.home.year} ${S.home.name}</span>
+            <span class="bt-score" style="color:var(--home)">${S.homeScore}</span>
+          </div>
+          <div class="bracket-team pending">
+            <span class="bt-name">${S.away.year} ${S.away.name}</span>
+            <span class="bt-score" style="color:var(--away)">${S.awayScore}</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+
+  const teamsLeft = BRACKET.roundMatchups.length * 2 + BRACKET.nextRoundWinners.length + 2;
+  note.textContent = `TOURNAMENT ${BRACKET.tournament} · ${ROUND_NAMES[BRACKET.roundNum]||'ROUND '+BRACKET.roundNum} · ~${teamsLeft} TEAMS REMAINING`;
+}
+
+// ─── TICK ────────────────────────────────────────────────────
+let lastTick = null;
+
+function tick(now) {
+  if (!lastTick) lastTick = now;
+  const delta = now - lastTick;
+  lastTick = now;
+  S.elapsed += delta * (80 / GAME_MS);
+
+  if (!S.htScores && S.elapsed >= 40) {
+    S.htScores = { home: S.homeScore, away: S.awayScore };
+    pushCommentary(rn(COMM.halftime)(S.home.name, S.away.name, S.homeScore, S.awayScore), 'muted');
+  }
+
+  if (S.elapsed >= 80 && !S.goldenPoint) {
+    if (S.homeScore === S.awayScore) {
+      // Tied — enter golden point
+      S.goldenPoint = true;
+      pushCommentary(rn(COMM.goldenPoint)(S.home.name, S.away.name), 'muted', true);
+      S.nextEvent = S.elapsed + 2 + Math.random() * 5;
+    } else {
+      closeGame();
+      newMatch();
+      renderUpcoming();
+      renderResults();
+      renderScorers();
+    }
+  }
+
+  // Fire events during normal time OR golden point extra time
+  if (S.elapsed >= S.nextEvent && (!S.goldenPoint ? S.elapsed < 80 : true)) {
+    fireEvent();
+  }
+
+  maybeGeneralComm();
+
+  document.getElementById('clock').textContent = new Date().toTimeString().split(' ')[0];
+  renderLive();
+  renderScorers();
+  requestAnimationFrame(tick);
+}
+
+// ─── PERSISTENCE ─────────────────────────────────────────────
+const SAVE_KEY = 'infinite_stadium_v2';
+
+function saveState() {
+  try {
+    const payload = {
+      tournament:       BRACKET.tournament,
+      roundNum:         BRACKET.roundNum,
+      completedRounds:  BRACKET.completedRounds,
+      roundMatchups:    BRACKET.roundMatchups,
+      nextRoundWinners: BRACKET.nextRoundWinners,
+      gameNumber:       S.gameNumber,
+      results:          S.results,
+      scorers:          S.scorers,
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+  } catch(e) { /* storage full or unavailable */ }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const p = JSON.parse(raw);
+    // Validate - must have at least tournament 1 and some matchups
+    if (!p.tournament || !Array.isArray(p.roundMatchups)) return false;
+    BRACKET.tournament       = p.tournament;
+    BRACKET.roundNum         = p.roundNum         || 1;
+    BRACKET.completedRounds  = p.completedRounds  || [];
+    BRACKET.roundMatchups    = p.roundMatchups     || [];
+    BRACKET.nextRoundWinners = p.nextRoundWinners  || [];
+    S.gameNumber             = p.gameNumber        || 1;
+    S.results                = p.results           || [];
+    S.scorers                = p.scorers           || {};
+    return true;
+  } catch(e) { return false; }
+}
+
+function clearSave() {
+  localStorage.removeItem(SAVE_KEY);
+  location.reload();
+}
+
+// ─── BOOT ────────────────────────────────────────────────────
+const restored = loadState();
+if (!restored) {
+  BRACKET.tournament = 0;
+  initTournament();
+}
+newMatch();
+renderUpcoming();
+renderResults();
+renderScorers();
+if (restored) {
+  pushCommentary(`RESUMED — Tournament ${BRACKET.tournament}, Round ${BRACKET.roundNum}, Game #${S.gameNumber.toLocaleString()}`, 'muted', false);
+}
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
