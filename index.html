@@ -1050,9 +1050,9 @@ function recordMatchHistory(winner, loser, hS, aS, winnerIsHome) {
   }
 
   // Grand final detection: the round is drained and exactly one survivor
-  // remains. Bye recipients enter nextRoundWinners before real matches are
-  // dealt, so length===1 with empty matchups can only be the final.
-  if (BRACKET.roundMatchups.length === 0 && BRACKET.nextRoundWinners.length === 1) {
+  // remains. nextRoundWinners is slot-indexed, so count filled slots
+  // rather than relying on raw .length (which can include unfilled gaps).
+  if (BRACKET.roundMatchups.length === 0 && BRACKET.nextRoundWinners.filter(Boolean).length === 1) {
     recordChampion(winner, loser, Math.max(hS,aS), Math.min(hS,aS));
   }
 
@@ -1281,7 +1281,9 @@ let BRACKET = {
   tournament: 1,         // which run through the tournament we're on
   roundNum: 1,           // current round number
   roundMatchups: [],     // remaining matchups this round [[home,away],...]
-  nextRoundWinners: [],  // winners accumulating for next round
+  roundSize: 0,          // total matchups dealt this round (stable index base)
+  nextRoundWinners: [],  // winners for next round, slot-indexed by matchup position
+  currentIndex: -1,      // index within this round of the matchup currently in play
   completedRounds: [],   // [ { roundNum, matches:[{home,away,hS,aS,winner}] } ]
   currentMatch: null,    // { home, away }
 };
@@ -1290,7 +1292,9 @@ function initTournament() {
   BRACKET.tournament++;
   BRACKET.roundNum = 1;
   BRACKET.roundMatchups = buildBracket();
+  BRACKET.roundSize = BRACKET.roundMatchups.length;
   BRACKET.nextRoundWinners = [];
+  BRACKET.currentIndex = -1;
   BRACKET.completedRounds = [];
   BRACKET.currentMatch = null;
   S.scorers = {};
@@ -1300,19 +1304,26 @@ function initTournament() {
 }
 
 function nextMatchup() {
-  // Skip byes automatically
+  // Skip byes automatically. Each matchup's slot index is derived from how
+  // much of roundMatchups has been consumed, so bye winners and real-match
+  // winners land in nextRoundWinners at the same position they held this
+  // round, regardless of how eagerly byes get drained ahead of live games.
   while (BRACKET.roundMatchups.length) {
+    const idx = BRACKET.roundSize - BRACKET.roundMatchups.length;
     const [home, away] = BRACKET.roundMatchups.shift();
     if (!home && !away) continue;
-    if (!home) { BRACKET.nextRoundWinners.push(away); continue; }
-    if (!away) { BRACKET.nextRoundWinners.push(home); continue; }
+    if (!home) { BRACKET.nextRoundWinners[idx] = away; continue; }
+    if (!away) { BRACKET.nextRoundWinners[idx] = home; continue; }
+    BRACKET.currentIndex = idx;
     return { home, away };
   }
-  // Round exhausted - advance
-  if (BRACKET.nextRoundWinners.length <= 1) {
+  // Round exhausted - advance. Compact out any unfilled slots (e.g. a
+  // null-vs-null bye pairing) before counting/pairing survivors.
+  const winners = BRACKET.nextRoundWinners.filter(Boolean);
+  if (winners.length <= 1) {
     // Tournament over
-    if (BRACKET.nextRoundWinners.length === 1) {
-      const champ = BRACKET.nextRoundWinners[0];
+    if (winners.length === 1) {
+      const champ = winners[0];
       const ek = `${champ.name}|${champ.year}`;
       const titleCount = (HISTORY.entries[ek] || {}).titles || 0;
       pushCommentary(`${champ.year} ${champ.name} ARE THE INFINITE STADIUM CHAMPIONS!${titleCount > 1 ? ` Their ${ordinal(titleCount)} title.` : ''}`, 'scoring-home', true);
@@ -1320,14 +1331,16 @@ function nextMatchup() {
     initTournament();
     return nextMatchup();
   }
-  // Build next round
+  // Build next round: pair winners positionally in the order they held
+  // this round (index order), not shuffled.
   BRACKET.roundNum++;
-  const winners = shuffle([...BRACKET.nextRoundWinners]);
   BRACKET.nextRoundWinners = [];
   BRACKET.roundMatchups = [];
   for (let i=0;i<winners.length;i+=2) {
     BRACKET.roundMatchups.push([winners[i], winners[i+1]||null]);
   }
+  BRACKET.roundSize = BRACKET.roundMatchups.length;
+  BRACKET.currentIndex = -1;
   return nextMatchup();
 }
 
@@ -1370,7 +1383,7 @@ function closeGame() {
   pushCommentary(rn(COMM.fulltime)(S.home.name, S.away.name, S.homeScore, S.awayScore), 'muted');
   const winner = S.homeScore >= S.awayScore ? S.home : S.away;
   const loser  = S.homeScore >= S.awayScore ? S.away : S.home;
-  BRACKET.nextRoundWinners.push(winner);
+  BRACKET.nextRoundWinners[BRACKET.currentIndex] = winner;
 
   // Store in completed rounds
   let rd = BRACKET.completedRounds.find(r=>r.roundNum===BRACKET.roundNum);
@@ -1870,7 +1883,7 @@ function renderLive() {
   const min = Math.min(80, Math.round(S.elapsed));
   const half = S.goldenPoint ? 'EXTRA TIME — GOLDEN POINT' : S.elapsed <= 40 ? '1ST HALF' : '2ND HALF';
   document.getElementById('matchTime').textContent = S.goldenPoint ? `${Math.round(S.elapsed)}'` : `${min}'`;
-  const remaining = BRACKET.roundMatchups.length + BRACKET.nextRoundWinners.length + 1;
+  const remaining = BRACKET.roundMatchups.length + BRACKET.nextRoundWinners.filter(Boolean).length + 1;
   const roundName = BRACKET.roundNum === 1 ? 'ROUND 1' : BRACKET.roundNum === 2 ? 'ROUND 2' : BRACKET.roundNum === 3 ? 'ROUND 3' : BRACKET.roundNum === 4 ? 'QUARTER-FINALS' : BRACKET.roundNum === 5 ? 'SEMI-FINALS' : BRACKET.roundNum === 6 ? 'GRAND FINAL' : `ROUND ${BRACKET.roundNum}`;
   document.getElementById('matchRound').textContent = `T${BRACKET.tournament} · ${roundName} · GAME #${S.gameNumber.toLocaleString()} · ${half}`;
   document.getElementById('roundNum').textContent = BRACKET.roundNum;
@@ -2063,7 +2076,7 @@ function renderBracket() {
 
   container.innerHTML = html;
 
-  const teamsLeft = BRACKET.roundMatchups.length * 2 + BRACKET.nextRoundWinners.length + 2;
+  const teamsLeft = BRACKET.roundMatchups.length * 2 + BRACKET.nextRoundWinners.filter(Boolean).length + 2;
   note.textContent = `TOURNAMENT ${BRACKET.tournament} · ${ROUND_NAMES[BRACKET.roundNum]||'ROUND '+BRACKET.roundNum} · ~${teamsLeft} TEAMS REMAINING`;
 }
 
@@ -2119,6 +2132,7 @@ function saveState() {
       roundNum:         BRACKET.roundNum,
       completedRounds:  BRACKET.completedRounds,
       roundMatchups:    BRACKET.roundMatchups,
+      roundSize:        BRACKET.roundSize,
       nextRoundWinners: BRACKET.nextRoundWinners,
       gameNumber:       S.gameNumber,
       results:          S.results,
@@ -2140,6 +2154,8 @@ function loadState() {
     BRACKET.completedRounds  = p.completedRounds  || [];
     BRACKET.roundMatchups    = p.roundMatchups     || [];
     BRACKET.nextRoundWinners = p.nextRoundWinners  || [];
+    BRACKET.roundSize        = p.roundSize || (BRACKET.roundMatchups.length + BRACKET.nextRoundWinners.filter(Boolean).length);
+    BRACKET.currentIndex     = -1;
     S.gameNumber             = p.gameNumber        || 1;
     S.results                = p.results           || [];
     S.scorers                = p.scorers           || {};
