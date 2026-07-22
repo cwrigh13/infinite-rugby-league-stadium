@@ -553,7 +553,7 @@
     <p>This generates approximately <strong>615 team-year combinations</strong> in total, making each tournament entry unique and historically grounded.</p>
 
     <h3>Player Rosters</h3>
-    <p>Every major club has a real historical player roster embedded in the simulation. When a match is played, each team draws 13 players from their actual known squad for that era. So the 1982 Canberra Raiders might field Mal Meninga, Laurie Daley, and Bradley Clyde, while the 2023 Brisbane Broncos line up Adam Reynolds, Payne Haas, and Selwyn Cobbo.</p>
+    <p>Every major club has a real historical player roster embedded in the simulation. When a match is played, each team fields an all-time greatest XIII drawn from its historical player pool. So the 1982 Canberra Raiders might field Mal Meninga, Laurie Daley, and Bradley Clyde, while the 2023 Brisbane Broncos line up Adam Reynolds, Payne Haas, and Selwyn Cobbo.</p>
     <p>Teams without a specific historical roster — mostly smaller QRL and international sides — draw from a plausible generic pool.</p>
 
     <hr class="readme-hr">
@@ -859,7 +859,7 @@ const TEAM_PLAYERS = {
   "Western Suburbs Magpies":      ["Tommy Raudonikis","Tim Pickup","John Elias","Les Boyd","Wayne Pearce","Geoff Bugden","Craig Coleman","Greg Alexander","Steve Ella","Michael Hagan","John Cartwright","Mark Sargent"],
   "Newtown Jets":                 ["Kel O'Shea","Don Parish","Bobby Sommer","Brian Clay","Greg Broughton","Kevin Junee","Les Gorman"],
   "North Sydney Bears":           ["Ken Irvine","Johnny Dorahy","Dean Bell","Craig Hancock","Geoff Toovey","Anthony Seibold","Paul Harragon","Daniel Anderson","Matthew Johns","Mark Hughes"],
-  "Balmain Tigers":               ["Arthur Beetson","Wayne Pearce","Paul Sironen","Garry Jack","Ben Elias","Steve Roach","Craig Field","Glenn Lazarus","Tim Brasher","Jason Taylor","Jim Serdaris"],
+  "Balmain Tigers":               ["Arthur Beetson","Wayne Pearce","Paul Sironen","Garry Jack","Ben Elias","Steve Roach","Craig Field","Tim Brasher","Jason Taylor","Jim Serdaris"],
   "Penrith Panthers":             ["Greg Alexander","Mark Geyer","Brad Fittler","John Cartwright","Craig Gower","Luke Priddis","Michael Jennings","Luke Lewis","Jamie Soward","Peter Wallace","Jamie Buhrer","Nathan Cleary","Jarome Luai","Brian To'o","Stephen Crichton","Isaah Yeo","James Fisher-Harris","Liam Martin","Scott Sorensen","Viliame Kikau","Dylan Edwards","Matt Burton","Api Koroisau"],
   "Cronulla-Sutherland Sharks":   ["Steve Rogers","Greg Pierce","Andrew Ettingshausen","Mark McGaw","Ricky Walford","Paul Gallen","Wade Graham","Luke Lewis","Ben Pomeroy","Chad Townsend","Valentine Holmes","Matt Moylan","Josh Dugan","Shaun Johnson","William Kennedy","Nicho Hynes","Briton Nikora","Teig Wilton","Siosifa Talakai","Jesse Ramien","Ronaldo Mulitalo"],
   "Gold Coast Chargers":          ["John Cartwright","Mark Hohn","Tony Currie","Paul Osborne","Adrian Brunker","Paul Green","Rod Wishart","John Simon"],
@@ -870,16 +870,16 @@ const TEAM_PLAYERS = {
   "Illawarra Steelers":           ["Craig Fitzgibbon","Rod Wishart","David Peachey","Trent Barrett","Nathan Hindmarsh","Bryan Fletcher","Craig Gordon","Jamie Ainscough"],
   "South Queensland Crushers":    ["Julian O'Neill","Jason Hetherington","Adrian Vowles","Mark Hohn","Gavin Allen"],
   "Hunter Mariners":              ["Matthew Johns","Paul Harragon","Tony Butterfield","Adam MacDougall"],
-  "Wests Tigers":                 ["Benji Marshall","Pat Richards","Daniel Fitzhenry","John Skandalis","Robbie Farah","Lote Tuqiri","Chris Lawrence","Aaron Woods","James Tedesco","Luke Brooks","David Nofoaluma","Ken Maumalo","Adam Doueihi","Daine Laurie","Jackson Hastings","Api Koroisau","Stefano Utoikamanu","Justin Olam","Apisai Koroisau"],
+  "Wests Tigers":                 ["Benji Marshall","Pat Richards","Daniel Fitzhenry","John Skandalis","Robbie Farah","Lote Tuqiri","Chris Lawrence","Aaron Woods","James Tedesco","Luke Brooks","David Nofoaluma","Ken Maumalo","Adam Doueihi","Daine Laurie","Jackson Hastings","Api Koroisau","Stefano Utoikamanu","Justin Olam"],
   "Melbourne Storm":              ["Billy Slater","Cameron Smith","Cooper Cronk","Ryan Hoffman","Dallas Johnson","Anthony Quinn","Matt King","Steve Turner","Israel Folau","Greg Inglis","Justin O'Neill","Will Chambers","Kevin Proctor","Jesse Bromwich","Nelson Asofa-Solomona","Felise Kaufusi","Brandon Smith","Jahrome Hughes","Ryan Papenhuyzen","Cameron Munster","Christian Welch","Harry Grant","Marion Seve","Nick Meaney"],
   "North Queensland Cowboys":     ["Johnathan Thurston","Matt Scott","Michael Morgan","Justin O'Neill","Kyle Feldt","Gavin Cooper","James Tamou","Matthew Wright","Jason Taumalolo","Jordan McLean","Jake Granville","Coen Hess","Javid Bowen","Scott Drinkwater","Valentine Holmes","Tom Dearden","Reuben Cotter","Jeremiah Nanai","Murray Taulagi","Heilum Luki"],
-  "New Zealand Warriors":         ["Matthew Ridge","Craig Innes","Gavin Hill","Marc Ellis","Tony Tatupu","Stacey Jones","Steve Price","Awen Guttenbeil","Ali Lauiti'iti","Clinton Toopi","Brent Webb","Lance Hohaia","Manu Vatuvei","Simon Mannering","Shaun Johnson","Konrad Hurrell","Tohu Harris","Roger Tuivasa-Sheck","Peta Hiku","Adam Blair","Addin Fonoti-Siofele","Reece Walsh","Shaun Johnson","Te Maire Martin","Wayde Egan"],
-  "Dolphins":                     ["Wayne Bennett","Jesse Bromwich","Felise Kaufusi","Jeremy Marshall-King","Hamiso Tabuai-Fidow","Tom Gilbert","Herbie Farnworth","Jamayne Isaako","Jake Averillo","Ray Stone","Euan Aitken","Brenko Lee","Mark Nicholls","Kenny Bromwich","Kurt Donoghoe"],
+  "New Zealand Warriors":         ["Matthew Ridge","Craig Innes","Gavin Hill","Marc Ellis","Tony Tatupu","Stacey Jones","Steve Price","Awen Guttenbeil","Ali Lauiti'iti","Clinton Toopi","Brent Webb","Lance Hohaia","Manu Vatuvei","Simon Mannering","Shaun Johnson","Konrad Hurrell","Tohu Harris","Roger Tuivasa-Sheck","Peta Hiku","Adam Blair","Addin Fonoti-Siofele","Reece Walsh","Te Maire Martin","Wayde Egan"],
+  "Dolphins":                     ["Jesse Bromwich","Felise Kaufusi","Jeremy Marshall-King","Hamiso Tabuai-Fidow","Tom Gilbert","Herbie Farnworth","Jamayne Isaako","Jake Averillo","Ray Stone","Euan Aitken","Brenko Lee","Mark Nicholls","Kenny Bromwich","Kurt Donoghoe"],
   "Redcliffe Dolphins":           ["Adrian Brunker","Craig Teevan","Michael Devery","Dane Carlaw","Tonie Carroll","Matt Lockyer","Dean Collis","Luke Page"],
   "Brisbane Souths":              ["Wally Lewis","Gene Miles","Mark Murray","Arthur Beetson","Chris Close","Bob Lindner","Greg Veivers"],
   "Norths Devils":                ["Kerrod Walters","Kevin Walters","Martin Bella","Glen Lazarus","Steve Renouf","Darren Smith","Paul Bowman"],
   "Wynnum Manly Seagulls":        ["Wally Lewis","Gene Miles","Mark Murray","Trevor Gillmeister","Michael Hagan","Barry Ward","Brad Davis"],
-  "Ipswich Jets":                 ["Allan Langer","Shane Webcke","Wayne Bennett","Jason Smith","Steve Renouf","Martin Bella","Chris Johns"],
+  "Ipswich Jets":                 ["Allan Langer","Shane Webcke","Jason Smith","Steve Renouf","Martin Bella","Chris Johns"],
   "Burleigh Bears":               ["Danny Nutley","Danny Peacock","Tonie Carroll","Stuart Kelly","Paul Bowman","Mike Paget"],
   "Tweed Heads Seagulls":         ["Michael Hancock","Craig Teevan","Adam Mogg","Brett Kimmorley","Anthony Tupou","Martin Lang"],
   "Easts Tigers":                 ["Wally Lewis","Trevor Gillmeister","Gene Miles","Arthur Beetson","Kevin Walters","Gavin Allen","Bob Lindner"],
@@ -916,7 +916,7 @@ const TEAM_PLAYERS = {
   "Great Britain Lions":          ["Garry Schofield","Ellery Hanley","Martin Offiah","Denis Betts","Andy Farrell","Paul Sculthorpe","Adrian Morley","Brian McDermott","Kris Radlinski","Sean Long","Kevin Sinfield","Jamie Jones-Buchanan","Rob Burrow","Stuart Fielden","Terry Newton"],
   "England":                      ["Sam Burgess","James Graham","Gareth Widdop","Stefan Ratchford","Mark Percival","Elliott Whitehead","Liam Farrell","Alex Walmsley","Sean O'Loughlin","Chris Hill","Ryan Hall","Josh Hodgson","Luke Thompson","John Bateman","Tom Johnstone","Dom Young","Mikolaj Oledzki","Victor Radley","Herbie Farnworth"],
   "France":                       ["Remi Casty","Benjamin Garcia","Clement Soubeyras","Gregory Mounis","Jamal Fakir","Eloi Pelissier","Jordan Dezaria","Arthur Mourgue","Tom Guillemin","Mathieu Cozza","Lucas Albert","Tony Gigot","William Barthau","Stan Robin"],
-  "New Zealand Kiwis":            ["Matthew Ridge","Craig Innes","Marc Ellis","Stacey Jones","Ruben Wiki","Nigel Vagana","Ali Lauiti'iti","Clinton Toopi","Benji Marshall","Simon Mannering","Jesse Bromwich","Kevin Proctor","Jason Taumalolo","Shaun Johnson","Jordan Rapana","Dallin Watene-Zelezniak","Peta Hiku","Jesse Bromwich","Jamayne Isaako","Charnze Nicoll-Klokstad","Te Maire Martin","Joseph Manu","Ronaldo Mulitalo"],
+  "New Zealand Kiwis":            ["Matthew Ridge","Craig Innes","Marc Ellis","Stacey Jones","Ruben Wiki","Nigel Vagana","Ali Lauiti'iti","Clinton Toopi","Benji Marshall","Simon Mannering","Jesse Bromwich","Kevin Proctor","Jason Taumalolo","Shaun Johnson","Jordan Rapana","Dallin Watene-Zelezniak","Peta Hiku","Jamayne Isaako","Charnze Nicoll-Klokstad","Te Maire Martin","Joseph Manu","Ronaldo Mulitalo"],
   "Papua New Guinea Kumuls":      ["Marcus Bai","Stanley Gene","Paul Aiton","Nate Myles","David Moore","John Wilshere","Rod Griffin","James Nightingale","Enoch Maki","Watson Boas","Edwin Ipape","Rhyse Martin","Justin Olam","Kyle Laybutt","Lachlan Lam","Kato Ottio","Wartovo Puara Jr"],
   "Samoa":                        ["Tonie Carroll","Frank Pritchard","David Fa'alogo","Sam Rapira","David Simona","Ben Matulino","Josh Hoffman","Frank-Paul Nuuausala","Tim Lafai","Junior Sa'u","Manu Vatuvei","Jarome Luai","Brian To'o","Stephen Crichton","Siosifa Talakai","Spencer Leniu","Jeremy Marshall-King","Hamiso Tabuai-Fidow","Ronaldo Mulitalo"],
   "Tonga Mate Ma'a":              ["Jason Taumalolo","Andrew Fifita","David Fusitu'a","Daniel Tupou","Tevita Pangai Jr","Addin Fonoti-Siofele","Sio Siua Taukeiaho","Kenny Bromwich","Jesse Bromwich","Josh Papali'i","Tevita Tatola","Isaiya Katoa","Tui Kamikamica","Will Penisini","Felise Kaufusi"],
@@ -929,7 +929,7 @@ const TEAM_PLAYERS = {
   "Ireland":                      ["Scott Grix","Bob Beswick","Craig Stapleton","George King","Liam Finn","Oliver Roberts","Brad Singleton","Luke Dorn","Michael McIlorum","Louis McCarthy-Scarsbrook","Cian Tynan","Ryan James","Joe Philbin","Ronan Michael"],
   "Wales":                        ["Jonathan Davies","John Devereux","Dai Young","Anthony Sullivan","Keiron Cunningham","Paul Sterling","Ian Watson","Gareth Thomas","Elliot Kear","Mike Butt","Ben Evans","Rhys Williams","Gil Dudson","Morgan Smithies","Curtis Davies"],
   "NSW Blues":                    ["Wally Lewis","Brad Fittler","Andrew Johns","Laurie Daley","Peter Sterling","Mark Gasnier","Matthew Johns","David Peachey","Bryan Fletcher","Nathan Hindmarsh","Luke Bailey","Michael Crocker","Paul Harragon","Danny Buderus","Craig Fitzgibbon","Luke Lewis","Mitchell Pearce","Paul Gallen","James Tamou","James Maloney","Josh Addo-Carr","Latrell Mitchell","Nathan Cleary","Payne Haas","Tom Trbojevic","Jarome Luai"],
-  "Queensland Maroons":           ["Wally Lewis","Mal Meninga","Gene Miles","Darren Lockyer","Allan Langer","Kevin Walters","Steve Renouf","Gordon Tallis","Gorden Tallis","Petero Civoniceva","Cameron Smith","Billy Slater","Cooper Cronk","Johnathan Thurston","Greg Inglis","Darius Boyd","Matt Gillett","Sam Thaiday","Corey Parker","Cameron Munster","Kalyn Ponga","Daly Cherry-Evans","David Fifita","Dane Gagai","Valentine Holmes"],
+  "Queensland Maroons":           ["Wally Lewis","Mal Meninga","Gene Miles","Darren Lockyer","Allan Langer","Kevin Walters","Steve Renouf","Gordon Tallis","Petero Civoniceva","Cameron Smith","Billy Slater","Cooper Cronk","Johnathan Thurston","Greg Inglis","Darius Boyd","Matt Gillett","Sam Thaiday","Corey Parker","Cameron Munster","Kalyn Ponga","Daly Cherry-Evans","David Fifita","Dane Gagai","Valentine Holmes"],
   "Australian Schoolboys":        ["Darren Lockyer","Johnathan Thurston","Cameron Smith","Greg Inglis","Benji Marshall","Cooper Cronk","Nathan Cleary","Jarome Luai","Tommy Turbo","Selwyn Cobbo"],
   "NSW Schoolboys":               ["Brad Fittler","Andrew Johns","Craig Fitzgibbon","Luke Rooney","Michael Crocker","Craig Wing","Peter Wallace","Mitchell Pearce","James Tamou","Nathan Cleary"],
   "Queensland Schoolboys":        ["Darren Lockyer","Johnathan Thurston","Billy Slater","Cameron Smith","Darius Boyd","Cooper Cronk","Kevin Gordon","Corey Norman","Kyle Feldt","Kalyn Ponga"],
@@ -1242,7 +1242,11 @@ function genSquad(teamName) {
   const pool = [...getPlayerPool(teamName)];
   // Shuffle and take up to 13, pad with generic if needed
   for (let i=pool.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
-  while (pool.length < 13) pool.push(rn(GENERIC_PLAYERS));
+  if (pool.length < 13) {
+    const genericPool = [...GENERIC_PLAYERS];
+    for (let i=genericPool.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [genericPool[i],genericPool[j]]=[genericPool[j],genericPool[i]]; }
+    while (pool.length < 13) pool.push(genericPool.shift());
+  }
   return pool.slice(0,13).map((name,i)=>({num:i+1,name}));
 }
 
