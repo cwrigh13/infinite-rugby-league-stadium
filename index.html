@@ -1398,6 +1398,7 @@ function newMatch() {
     if (h&&a) S.upcoming.push({home:h,away:a});
   }
   lastCommAt = -999;
+  ambientReset();
   setTimeout(() => pushCommentary(rn(COMM.kickoff)(S.home.name, S.away.name), ''), 200);
   const stories = findStorylines(S.home, S.away);
   if (stories.length) setTimeout(() => stories.forEach(l => pushCommentary(l, 'muted', false)), 400);
@@ -1650,7 +1651,7 @@ function speakNext() {
   const text = speechQueue.shift();
   const utt = new SpeechSynthesisUtterance(text);
   if (selectedVoice) utt.voice = selectedVoice;
-  utt.rate  = 0.92;
+  utt.rate  = matchEra() < 1960 ? 0.88 : 0.92;
   utt.pitch = 0.88;
   utt.volume = 1.0;
   isSpeaking = true;
@@ -1680,15 +1681,133 @@ function toggleAudio(btn) {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     speechQueue = [];
     isSpeaking = false;
+    ambientStop();
   } else {
-    // Trigger a voice load if not done yet
     loadVoice();
-    // Announce the current match
+    ambientStart();
     const intro = `Now at the Infinite Rugby League Stadium — ${S.home.name} taking on ${S.away.name}.`;
     queueSpeech(intro);
   }
 }
 
+// ─── AMBIENT AUDIO ENGINE (WebAudio synthesis) ────────────
+let _actx = null;
+let _amb = null;
+
+function matchEra() {
+  if (!S.home || !S.away) return 2000;
+  return Math.round((S.home.year + S.away.year) / 2);
+}
+
+function ambientStart() {
+  if (!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_actx.state === 'suspended') _actx.resume();
+  if (_amb) ambientStop();
+
+  const ctx = _actx;
+  const era = matchEra();
+  const vintage = era < 1960;
+
+  const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+  const nd = noiseBuf.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+
+  const noise = ctx.createBufferSource();
+  noise.buffer = noiseBuf;
+  noise.loop = true;
+  noise.start();
+
+  const lp = ctx.createBiquadFilter();
+  lp.type = vintage ? 'bandpass' : 'lowpass';
+  lp.frequency.value = vintage ? 800 : 400;
+  if (vintage) lp.Q.value = 0.7;
+
+  const crowdGain = ctx.createGain();
+  crowdGain.gain.value = 0.05;
+
+  const lfo = ctx.createOscillator();
+  lfo.type = 'sine';
+  lfo.frequency.value = 0.3;
+  const lfoGain = ctx.createGain();
+  lfoGain.gain.value = 0.015;
+  lfo.connect(lfoGain);
+  lfoGain.connect(crowdGain.gain);
+  lfo.start();
+
+  noise.connect(lp);
+  lp.connect(crowdGain);
+
+  let crackleNode = null, crackleGain = null, crackleInterval = null;
+  if (vintage) {
+    crackleNode = ctx.createBufferSource();
+    const cBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const cd = cBuf.getChannelData(0);
+    for (let i = 0; i < cd.length; i++) cd[i] = Math.random() < 0.002 ? (Math.random() * 2 - 1) : 0;
+    crackleNode.buffer = cBuf;
+    crackleNode.loop = true;
+    crackleNode.start();
+    crackleGain = ctx.createGain();
+    crackleGain.gain.value = 0.04;
+    crackleNode.connect(crackleGain);
+    crackleGain.connect(ctx.destination);
+  }
+
+  crowdGain.connect(ctx.destination);
+
+  _amb = { ctx, noise, lp, crowdGain, lfo, lfoGain, crackleNode, crackleGain, crackleInterval, vintage };
+}
+
+function ambientStop() {
+  if (!_amb) return;
+  try { _amb.noise.stop(); } catch(e) {}
+  try { _amb.lfo.stop(); } catch(e) {}
+  if (_amb.crackleNode) try { _amb.crackleNode.stop(); } catch(e) {}
+  if (_amb.crackleInterval) clearInterval(_amb.crackleInterval);
+  _amb = null;
+}
+
+function ambientReset() {
+  if (!audioEnabled || !_amb) return;
+  ambientStop();
+  ambientStart();
+}
+
+function crowdSwell(peak, durationMs) {
+  if (!_amb) return;
+  const g = _amb.crowdGain.gain;
+  const t = _amb.ctx.currentTime;
+  g.cancelScheduledValues(t);
+  g.setValueAtTime(g.value, t);
+  g.linearRampToValueAtTime(peak, t + 0.15);
+  g.linearRampToValueAtTime(0.05, t + durationMs / 1000);
+}
+
+function playSiren() {
+  if (!_actx) return;
+  const ctx = _actx;
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = 'square';
+  g.gain.value = 0.08;
+  osc.connect(g);
+  g.connect(ctx.destination);
+  const t = ctx.currentTime;
+  osc.frequency.setValueAtTime(440, t);
+  osc.frequency.setValueAtTime(580, t + 0.4);
+  osc.frequency.setValueAtTime(440, t + 0.8);
+  osc.frequency.setValueAtTime(580, t + 1.2);
+  g.gain.setValueAtTime(0.08, t);
+  g.gain.linearRampToValueAtTime(0, t + 1.6);
+  osc.start(t);
+  osc.stop(t + 1.6);
+}
+
+function ambientOnEvent(evType) {
+  if (!audioEnabled || !_amb) return;
+  if (evType === 'try') crowdSwell(0.25, 3000);
+  else if (evType === 'penalty' || evType === 'fieldgoal') crowdSwell(0.12, 1500);
+  else if (evType === 'halftime' || evType === 'fulltime') { playSiren(); crowdSwell(0.18, 2000); }
+}
 
 const COMM_INTERVAL_MINS = 8;
 let lastCommAt = -999;
@@ -1715,6 +1834,7 @@ function commForEvent(evType, player, team, side) {
   const oppPlayer = rn(oppSquad).name;
   const min = Math.min(79, Math.round(S.elapsed));
   const cssClass = isHome ? 'scoring-home' : 'scoring-away';
+  ambientOnEvent(evType);
 
   if (evType === 'try') {
     const pool = min >= 75 ? COMM.tryScored_closing : min >= 65 ? COMM.tryScored_late : COMM.tryScored;
@@ -2166,15 +2286,16 @@ function tick(now) {
   if (!S.htScores && S.elapsed >= 40) {
     S.htScores = { home: S.homeScore, away: S.awayScore };
     pushCommentary(rn(COMM.halftime)(S.home.name, S.away.name, S.homeScore, S.awayScore), 'muted');
+    ambientOnEvent('halftime');
   }
 
   if (S.elapsed >= 80 && !S.goldenPoint) {
     if (S.homeScore === S.awayScore) {
-      // Tied — enter golden point
       S.goldenPoint = true;
       pushCommentary(rn(COMM.goldenPoint)(S.home.name, S.away.name), 'muted', true);
       S.nextEvent = S.elapsed + 2 + Math.random() * 5;
     } else {
+      ambientOnEvent('fulltime');
       closeGame();
       newMatch();
       renderUpcoming();
