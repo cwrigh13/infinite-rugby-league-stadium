@@ -788,6 +788,9 @@ const TEAM_DEFS = [
   ["Wales",                        1908,2024, ["Northern Union","Rugby League World Cup","European Championship"]],
   ["NSW Blues",                    1980,2024, ["State of Origin"]],
   ["Queensland Maroons",           1980,2024, ["State of Origin"]],
+  ["Australian Schoolboys",        1972,2024, ["Schoolboys Internationals"]],
+  ["NSW Schoolboys",               1972,2024, ["Schoolboys Interstate"]],
+  ["Queensland Schoolboys",        1972,2024, ["Schoolboys Interstate"]],
 ];
 
 // Competition active eras, so an entry's comp matches its year (audit fix #10).
@@ -804,6 +807,7 @@ const COMP_ERAS = {
   "Rugby League World Cup":[1954,2100], "Pacific Championship":[2023,2100], "Pacific Cup":[1975,2100],
   "Ashes Series":[1908,2003], "State of Origin":[1980,2100],
   "European Championship":[1995,2100], "Americas Championship":[2016,2100], "Middle East Championship":[2000,2100],
+  "Schoolboys Internationals":[1972,2100], "Schoolboys Interstate":[1972,2100],
 };
 
 function compForYear(comps, year) {
@@ -914,7 +918,7 @@ const TEAM_PLAYERS = {
   "Wales":                        ["Jonathan Davies","John Devereux","Dai Young","Anthony Sullivan","Keiron Cunningham","Paul Sterling","Ian Watson","Gareth Thomas","Elliot Kear","Mike Butt","Ben Evans","Rhys Williams","Gil Dudson","Morgan Smithies","Curtis Davies"],
   "NSW Blues":                    ["Wally Lewis","Brad Fittler","Andrew Johns","Laurie Daley","Peter Sterling","Mark Gasnier","Matthew Johns","David Peachey","Bryan Fletcher","Nathan Hindmarsh","Luke Bailey","Michael Crocker","Paul Harragon","Danny Buderus","Craig Fitzgibbon","Luke Lewis","Mitchell Pearce","Paul Gallen","James Tamou","James Maloney","Josh Addo-Carr","Latrell Mitchell","Nathan Cleary","Payne Haas","Tom Trbojevic","Jarome Luai"],
   "Queensland Maroons":           ["Wally Lewis","Mal Meninga","Gene Miles","Darren Lockyer","Allan Langer","Kevin Walters","Steve Renouf","Gordon Tallis","Petero Civoniceva","Cameron Smith","Billy Slater","Cooper Cronk","Johnathan Thurston","Greg Inglis","Darius Boyd","Matt Gillett","Sam Thaiday","Corey Parker","Cameron Munster","Kalyn Ponga","Daly Cherry-Evans","David Fifita","Dane Gagai","Valentine Holmes"],
-  "Australian Schoolboys":        ["Darren Lockyer","Johnathan Thurston","Cameron Smith","Greg Inglis","Benji Marshall","Cooper Cronk","Nathan Cleary","Jarome Luai","Tommy Turbo","Selwyn Cobbo"],
+  "Australian Schoolboys":        ["Darren Lockyer","Johnathan Thurston","Cameron Smith","Greg Inglis","Benji Marshall","Cooper Cronk","Nathan Cleary","Jarome Luai","Tom Trbojevic","Selwyn Cobbo"],
   "NSW Schoolboys":               ["Brad Fittler","Andrew Johns","Craig Fitzgibbon","Luke Rooney","Michael Crocker","Craig Wing","Peter Wallace","Mitchell Pearce","James Tamou","Nathan Cleary"],
   "Queensland Schoolboys":        ["Darren Lockyer","Johnathan Thurston","Billy Slater","Cameron Smith","Darius Boyd","Cooper Cronk","Kevin Gordon","Corey Norman","Kyle Feldt","Kalyn Ponga"],
 };
