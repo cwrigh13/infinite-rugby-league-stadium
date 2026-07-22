@@ -1216,10 +1216,7 @@ function importHistory(input) {
 }
 
 function getPlayerPool(teamName) {
-  // Try exact match first, then partial match
-  if (TEAM_PLAYERS[teamName]) return TEAM_PLAYERS[teamName];
-  const key = Object.keys(TEAM_PLAYERS).find(k => teamName.includes(k) || k.includes(teamName));
-  return key ? TEAM_PLAYERS[key] : GENERIC_PLAYERS;
+  return TEAM_PLAYERS[teamName] || GENERIC_PLAYERS;
 }
 
 function genSquad(teamName) {
@@ -1803,10 +1800,7 @@ function genericLogo(teamName) {
 }
 
 function getLogo(teamName) {
-  if (TEAM_LOGOS[teamName]) return TEAM_LOGOS[teamName];
-  // Try partial match
-  const key = Object.keys(TEAM_LOGOS).find(k => teamName.includes(k.split(' ')[0]) && teamName.split(' ').some(w => k.includes(w)));
-  return key ? TEAM_LOGOS[key] : genericLogo(teamName);
+  return TEAM_LOGOS[teamName] || genericLogo(teamName);
 }
 
 // ─── RENDER ─────────────────────────────────────────────────
