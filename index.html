@@ -5,520 +5,500 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>THE INFINITE STADIUM</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
 
   :root {
-    --bg: #0a0a0a;
-    --border: #2a2a2a;
-    --text: #e8e8e8;
-    --muted: #888;
-    --accent: #c8ff00;
-    --danger: #ff3b3b;
-    --dim: #aaa;
-    --home: #4aaeff;
-    --away: #ffaa44;
+    --bg: #EAF1F8;
+    --card: #FFFFFF;
+    --accent: #1B6EF3;
+    --accent-soft: #EAF1FE;
+    --text: #1E2A3B;
+    --muted: #8B9BB0;
+    --dim: #8B9BB0;
+    --border: #EDF1F6;
+    --pill-border: #DFE7F0;
+    --green: #22B573;
+    --danger: #E5484D;
+    --home: #1B6EF3;
+    --away: #E8792B;
+    --strip: #F4F8FC;
+    --hover: #F8FBFF;
+    --shadow: 0 2px 12px rgba(30,60,120,0.06);
+    --radius: 16px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    line-height: 1.4;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
   }
+
+  /* BACKGROUND BLOBS */
+  .blob { position: fixed; border-radius: 50%; filter: blur(70px); z-index: -1; pointer-events: none; background: var(--accent); }
+  .blob-1 { width: 520px; height: 520px; top: -170px; left: -120px; opacity: 0.13; }
+  .blob-2 { width: 640px; height: 640px; bottom: -240px; right: -180px; opacity: 0.10; }
+  .blob-3 { width: 380px; height: 380px; top: 42%; left: 56%; opacity: 0.06; }
 
   .page { display: none; }
   .page.active { display: block; }
+  #page-readme, #page-bracket, #page-records { padding: 10px 28px 48px; }
 
-  /* HEADER */
-  .header {
-    border-bottom: 3px solid var(--accent);
-    padding: 10px 20px;
+  /* TOP BAR */
+  .topbar {
+    background: var(--card);
+    box-shadow: var(--shadow);
+    border-bottom: 1px solid var(--border);
+    padding: 13px 28px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    background: var(--bg);
+    justify-content: space-between;
+    gap: 20px;
     position: sticky;
     top: 0;
     z-index: 100;
   }
-  .header-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 26px;
-    letter-spacing: 4px;
-    color: var(--accent);
-    line-height: 1;
-  }
-  .header-sub { font-size: 9px; color: var(--dim); letter-spacing: 2px; }
-  .header-nav { display: flex; }
+  .brand { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; color: var(--text); white-space: nowrap; display: flex; align-items: center; gap: 9px; }
+  .brand .accent { color: var(--accent); }
+  .topbar-nav { display: flex; gap: 2px; align-items: center; flex: 1; }
   .nav-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    background: #161616;
-    border: 1px solid var(--border);
-    color: var(--dim);
-    padding: 6px 16px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--muted);
+    padding: 8px 14px;
     cursor: pointer;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
-    border-right: none;
     text-transform: uppercase;
+    transition: color 0.15s, border-color 0.15s;
   }
-  .nav-btn:last-of-type { border-right: 1px solid var(--border); }
-  .nav-btn:hover { color: var(--text); border-color: #444; background: #1e1e1e; }
-  .nav-btn.active {
-    color: var(--accent);
-    border-color: var(--accent);
-    background: #0f1a00;
-  }
-  .nav-btn.active:hover { background: #152000; }
-  .header-right { text-align: right; }
-  .live-badge {
-    display: inline-block;
-    background: var(--danger);
-    color: #fff;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    padding: 2px 6px;
-    animation: blink 1.2s step-end infinite;
-  }
-  @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.2} }
-  .clock { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--dim); margin-top: 2px; }
-  .game-ctr { font-family: 'Share Tech Mono', monospace; font-size: 9px; color: var(--dim); }
+  .nav-btn:hover { color: var(--text); }
+  .nav-btn.active { color: var(--text); font-weight: 800; border-bottom-color: var(--accent); }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .topbar-clock { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: 0.5px; }
 
-  /* LAYOUT */
-  .main { display: grid; grid-template-columns: 1fr 1fr 1fr; border: 1px solid var(--border); }
-  .panel { border: 1px solid var(--border); }
-  .panel-label {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 13px;
-    letter-spacing: 3px;
-    color: var(--dim);
-    padding: 7px 14px;
+  /* PILLS */
+  .pill {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--card);
+    border: 1px solid var(--pill-border);
+    color: var(--text);
+    padding: 8px 15px;
+    border-radius: 999px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    outline: none;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .pill:hover { border-color: var(--accent); color: var(--accent); }
+  .pill.active, .pill.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .pill.danger { color: var(--danger); border-color: rgba(229,72,77,0.4); }
+  .pill.danger:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
+  select.pill {
+    -webkit-appearance: none;
+    appearance: none;
+    padding-right: 30px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%238B9BB0' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 13px center;
+  }
+  select.pill:hover { border-color: var(--accent); color: var(--text); }
+
+  /* BREADCRUMB */
+  .breadcrumb { max-width: 1200px; margin: 0 auto; padding: 16px 28px 0; color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: 0.3px; }
+  .breadcrumb span { margin: 0 6px; opacity: 0.6; }
+  .breadcrumb b { color: var(--text); }
+
+  /* CONTAINER + CARDS */
+  .container { max-width: 1200px; margin: 0 auto; padding: 18px 28px 56px; }
+  .card, .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .section-strip, .panel-label {
+    background: var(--strip);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 18px;
     border-bottom: 1px solid var(--border);
-    background: #0d0d0d;
   }
 
-  /* LIVE MATCH HEADER */
-  .live-panel { grid-column: 1 / 4; border-bottom: 2px solid var(--border); }
-  .matchup { display: grid; grid-template-columns: 1fr auto 1fr; }
-  .team-block { padding: 14px 20px; display: flex; flex-direction: column; justify-content: center; }
-  .team-block.home { border-right: 1px solid var(--border); }
-  .team-block.away { border-left: 1px solid var(--border); text-align: right; }
-  .team-identity { display: flex; align-items: center; gap: 10px; }
-  .away-identity { flex-direction: row-reverse; }
+  /* LIVE GRID */
+  .live-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start; }
+  .col-main, .col-side { min-width: 0; }
+  @media (max-width: 900px) { .live-grid { grid-template-columns: 1fr; } }
+
+  /* MATCH CENTRE */
+  .mc-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; flex-wrap: wrap; }
+  .chip-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .chip {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: var(--card); border: 1px solid var(--pill-border);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    color: var(--muted); cursor: default; transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .chip .chip-ic { font-size: 18px; line-height: 1; }
+  .chip .chip-lb { font-size: 8px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; }
+  .chip.active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .pager { display: flex; align-items: center; gap: 4px; background: var(--card); border: 1px solid var(--pill-border); border-radius: 999px; padding: 4px 6px; }
+  .pager-btn { width: 26px; height: 26px; border-radius: 50%; border: none; background: none; color: var(--muted); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s; }
+  .pager-btn:hover { background: var(--strip); color: var(--accent); }
+  .pager-label { font-size: 12px; font-weight: 700; color: var(--text); padding: 0 6px; letter-spacing: 0.3px; white-space: nowrap; }
+  .mc-meta { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: 0.4px; padding: 0 18px 15px; display: flex; gap: 18px; }
+  .mc-meta b { color: var(--text); }
+
+  /* LIVE MATCH CARD */
+  .lm-body { padding: 22px 20px; }
+  .lm-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; }
+  .lm-team { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .lm-team.away { flex-direction: row-reverse; text-align: right; }
   .team-logo { width: 52px; height: 52px; flex-shrink: 0; }
   .team-logo svg { width: 100%; height: 100%; }
-  .team-era { font-size: 9px; letter-spacing: 2px; color: var(--dim); margin-bottom: 3px; }
-  .team-name { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; line-height: 1.1; }
-  .team-name.home { color: var(--home); }
-  .team-name.away { color: var(--away); }
-  .team-comp { font-size: 9px; color: var(--dim); margin-top: 2px; }
-  .score-block { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 28px; min-width: 140px; }
-  .score { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 4px; line-height: 1; }
-  .score-sep { color: var(--muted); margin: 0 4px; }
-  .match-time { font-size: 10px; color: var(--accent); letter-spacing: 2px; margin-top: 4px; }
-  .match-round { font-size: 9px; color: var(--dim); letter-spacing: 1px; margin-top: 2px; }
-  .progress-bar { height: 2px; background: var(--border); }
-  .progress-fill { height: 100%; background: var(--accent); transition: width 0.5s linear; }
+  .team-era { font-size: 10px; font-weight: 600; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+  .team-name { font-size: 19px; font-weight: 800; line-height: 1.15; color: var(--text); letter-spacing: -0.2px; margin: 1px 0; }
+  .team-comp { font-size: 10px; color: var(--muted); }
+  .lm-center { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+  .live-pill { display: inline-flex; align-items: center; gap: 5px; background: rgba(34,181,115,0.12); color: var(--green); font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border-radius: 999px; text-transform: uppercase; }
+  .live-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink 1.2s step-end infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+  .score-chip { display: inline-flex; align-items: baseline; gap: 8px; background: var(--strip); border-radius: 12px; padding: 8px 18px; font-size: 30px; font-weight: 800; color: var(--text); border-bottom: 3px solid var(--green); letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+  .score-chip .score-sep { color: var(--muted); font-weight: 600; font-size: 22px; }
+  .match-time { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 0.5px; }
+  .match-round { font-size: 10px; color: var(--muted); letter-spacing: 0.5px; text-align: center; }
+  .progress-bar { height: 5px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 20px; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.5s linear; }
 
   /* SCORING SUMMARY */
-  .scoring-panel { grid-column: 1 / 4; border-bottom: 2px solid var(--border); }
-  .scoring-inner { display: grid; grid-template-columns: 1fr 90px 1fr; min-height: 100px; }
-  .scoring-col { padding: 10px 14px; }
+  .scoring-inner { display: grid; grid-template-columns: 1fr 96px 1fr; border-top: 1px solid var(--border); }
+  .scoring-col { padding: 14px 18px; }
   .scoring-col.home-col { border-right: 1px solid var(--border); }
   .scoring-col.away-col { border-left: 1px solid var(--border); text-align: right; }
-  .scoring-divider { display: flex; flex-direction: column; align-items: center; padding: 10px 4px; gap: 14px; border-right: 1px solid var(--border); }
+  .scoring-divider { display: flex; flex-direction: column; align-items: center; padding: 14px 6px; gap: 14px; }
   .div-stat { text-align: center; }
-  .div-num { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 2px; color: var(--text); }
-  .div-lbl { font-size: 7px; letter-spacing: 2px; color: var(--muted); }
-  .scoring-group { margin-bottom: 8px; }
-  .scoring-section-label { font-size: 8px; letter-spacing: 2px; color: var(--dim); border-bottom: 1px solid var(--border); padding-bottom: 2px; margin-bottom: 4px; }
-  .score-event { font-size: 10px; line-height: 1.7; color: var(--dim); }
-  .score-event .pname { color: var(--text); }
-  .score-event .pmin { color: var(--muted); font-size: 9px; margin-left: 3px; }
-  .halftime-row {
-    border-top: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    gap: 16px; padding: 5px 14px; background: #0d0d0d;
-  }
-  .ht-label { font-size: 9px; letter-spacing: 2px; color: var(--dim); }
-  .ht-score { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 3px; }
+  .div-num { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: 0.5px; }
+  .div-lbl { font-size: 8px; font-weight: 600; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
+  .scoring-group { margin-bottom: 10px; }
+  .scoring-section-label { font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); padding-bottom: 3px; margin-bottom: 5px; }
+  .score-event { font-size: 11px; line-height: 1.7; color: var(--muted); }
+  .score-event .pname { color: var(--text); font-weight: 600; }
+  .score-event .pmin { color: var(--muted); font-size: 10px; margin-left: 4px; }
+  .halftime-row { border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 16px; padding: 11px 14px; background: var(--strip); }
+  .ht-label { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .ht-score { font-size: 16px; font-weight: 800; letter-spacing: 1px; }
 
   /* COMMENTARY */
-  .commentary-panel { grid-column: 1 / 4; border-bottom: 2px solid var(--border); }
-  .commentary-feed {
-    padding: 0;
-    max-height: 160px;
-    overflow-y: auto;
-    scroll-behavior: smooth;
-  }
-  .commentary-feed::-webkit-scrollbar { width: 4px; }
+  .commentary-feed { max-height: 460px; overflow-y: auto; scroll-behavior: smooth; }
+  .commentary-feed::-webkit-scrollbar { width: 6px; }
   .commentary-feed::-webkit-scrollbar-track { background: transparent; }
-  .commentary-feed::-webkit-scrollbar-thumb { background: var(--border); }
-  .commentary-line {
-    display: grid;
-    grid-template-columns: 32px 1fr;
-    gap: 10px;
-    padding: 6px 14px;
-    border-bottom: 1px solid var(--border);
-    font-size: 11px;
-    line-height: 1.5;
-    animation: fade-in 0.4s ease;
-  }
+  .commentary-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+  .commentary-line { display: grid; grid-template-columns: 34px 1fr; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 12px; line-height: 1.5; animation: fade-in 0.4s ease; }
   .commentary-line:last-child { border-bottom: none; }
   @keyframes fade-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
-  .comm-min {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 10px;
-    color: var(--accent);
-    padding-top: 1px;
-    text-align: right;
-  }
+  .comm-min { font-size: 11px; font-weight: 700; color: var(--accent); text-align: right; font-variant-numeric: tabular-nums; }
   .comm-min.neutral { color: var(--muted); }
   .comm-text { color: var(--text); }
-  .comm-text.scoring-home { color: var(--home); }
-  .comm-text.scoring-away { color: var(--away); }
-  .comm-text.muted { color: var(--dim); }
-  /* SCORERS */
-  .scorers-row {
-    padding: 5px 14px;
-    border-bottom: 1px solid var(--border);
-    display: grid;
-    grid-template-columns: 20px 1fr 28px 28px 28px 34px;
-    gap: 4px;
-    align-items: center;
-    font-size: 10px;
-  }
-  .scorers-row:last-child { border-bottom: none; }
-  .scorers-row.header {
-    font-size: 8px;
-    letter-spacing: 1px;
-    color: var(--muted);
-    padding-top: 6px;
-    padding-bottom: 5px;
-  }
-  .sc-rank { color: var(--muted); font-size: 9px; font-family: 'Share Tech Mono', monospace; }
-  .sc-name { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .sc-num  { text-align: center; font-family: 'Share Tech Mono', monospace; color: var(--dim); }
-  .sc-pts  { text-align: right; font-family: 'Share Tech Mono', monospace; color: var(--accent); font-weight: 700; }
+  .comm-text.scoring-home { color: var(--home); font-weight: 600; }
+  .comm-text.scoring-away { color: var(--away); font-weight: 600; }
+  .comm-text.muted { color: var(--muted); }
 
-  .game-row {
-    padding: 8px 14px; border-bottom: 1px solid var(--border);
-    display: grid; grid-template-columns: 36px 1fr auto;
-    gap: 8px; align-items: center; font-size: 10px;
-  }
+  /* FRANCHISE RATINGS */
+  .fr-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .fr-row:last-child { border-bottom: none; }
+  .fr-row:hover { background: var(--hover); }
+  .fr-dial { width: 46px; height: 46px; flex-shrink: 0; position: relative; }
+  .fr-dial svg { transform: rotate(-90deg); }
+  .fr-dial-val { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: var(--text); }
+  .fr-info { flex: 1; min-width: 0; }
+  .fr-name { font-size: 13px; font-weight: 800; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fr-stat { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .fr-link { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--pill-border); background: none; color: var(--muted); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: border-color 0.15s, color 0.15s; }
+  .fr-link:hover { border-color: var(--accent); color: var(--accent); }
+  .fr-empty { padding: 18px 16px; color: var(--muted); font-size: 12px; }
+
+  /* FIXTURE / RESULT ROWS */
+  .game-row { padding: 13px 18px; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; font-size: 12px; }
   .game-row:last-child { border-bottom: none; }
-  .game-num { font-size: 9px; color: var(--dim); font-family: 'Share Tech Mono', monospace; }
-  .game-home { color: var(--home); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .game-away { color: var(--away); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .game-vs { color: var(--muted); font-size: 8px; }
-  .game-score { font-family: 'Share Tech Mono', monospace; font-size: 11px; text-align: right; white-space: nowrap; }
+  .game-row:hover { background: var(--hover); }
+  .game-num { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; }
+  .game-home { color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .game-away { color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .game-vs { color: var(--muted); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; margin: 2px 0; }
+  .game-score { font-size: 13px; font-weight: 800; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .result-win { color: var(--accent); }
-  .result-loss { color: var(--dim); }
-  .upcoming-label { font-size: 8px; color: var(--muted); margin-left: 4px; }
+  .result-loss { color: var(--muted); }
+  .upcoming-label { font-size: 9px; color: var(--muted); font-weight: 500; margin-left: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+  /* SCORERS */
+  .scorers-row { padding: 10px 18px; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 22px 1fr 30px 30px 30px 40px; gap: 6px; align-items: center; font-size: 12px; }
+  .scorers-row:last-child { border-bottom: none; }
+  .scorers-row:hover:not(.header) { background: var(--hover); }
+  .scorers-row.header { font-size: 9px; font-weight: 600; letter-spacing: 0.6px; color: var(--muted); text-transform: uppercase; background: var(--strip); }
+  .sc-rank { color: var(--muted); font-size: 11px; font-weight: 700; }
+  .sc-name { color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sc-num { text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .sc-pts { text-align: right; color: var(--accent); font-weight: 800; font-variant-numeric: tabular-nums; }
 
   /* FOOTER */
-  .footer {
-    border-top: 1px solid var(--border); padding: 5px 20px;
-    display: flex; justify-content: space-between;
-    color: var(--dim); font-size: 9px; letter-spacing: 1px;
-  }
-  .footer-acc { color: var(--accent); }
+  .footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 4px 4px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.3px; flex-wrap: wrap; }
+  .footer-acc { color: var(--accent); font-weight: 800; }
 
-  /* README PAGE */
-  .readme-page {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 40px 32px 60px;
-    font-size: 13px;
-    line-height: 1.7;
-    color: var(--text);
-  }
-  .readme-page h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 36px;
-    letter-spacing: 4px;
-    color: var(--accent);
-    margin-bottom: 16px;
-    line-height: 1;
-  }
-  .readme-page h2 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px;
-    letter-spacing: 3px;
-    color: var(--text);
-    margin: 32px 0 10px;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 6px;
-  }
-  .readme-page h3 {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--accent);
-    text-transform: uppercase;
-    margin: 20px 0 6px;
-  }
-  .readme-page p { margin-bottom: 12px; color: var(--dim); }
-  .readme-lead { font-size: 14px; color: var(--text); line-height: 1.6; }
-  .readme-page strong { color: var(--text); }
-  .readme-page ul { margin: 8px 0 14px 20px; color: var(--dim); }
-  .readme-page li { margin-bottom: 4px; }
-  .readme-hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
-  .readme-note {
-    background: #0d0d0d;
-    border-left: 2px solid var(--accent);
-    padding: 10px 14px;
-    font-size: 11px;
-    color: var(--dim);
-    margin: 8px 0 14px;
-  }
-  .readme-footer-line { text-align: center; color: var(--muted); font-size: 12px; margin-top: 16px; }
-  .readme-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 14px 0 20px;
-    font-size: 11px;
-    font-family: 'IBM Plex Mono', monospace;
-  }
-  .readme-table th {
-    text-align: left;
-    padding: 6px 12px;
-    font-size: 9px;
-    letter-spacing: 2px;
-    color: var(--muted);
-    border-bottom: 1px solid var(--border);
-    background: #0d0d0d;
-  }
-  .readme-table td {
-    padding: 6px 12px;
-    color: var(--dim);
-    border-bottom: 1px solid var(--border);
-  }
-  .readme-table tr:last-child td { border-bottom: none; }
-  .readme-table tr:hover td { background: #111; color: var(--text); }
-  .bracket-page { padding: 20px; overflow-x: auto; }
-  .bracket-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 4px; color: var(--dim); margin-bottom: 16px; }
-  .bracket-container { display: flex; align-items: flex-start; min-width: max-content; }
-  .bracket-round { display: flex; flex-direction: column; }
-  .bracket-round-label {
-    font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: 3px;
-    color: var(--dim); padding: 0 8px 8px 8px; border-bottom: 1px solid var(--border);
-  }
-  .bracket-col {
-    display: flex; flex-direction: column; padding: 6px 0;
-    border-right: 1px solid var(--border); min-width: 210px;
-  }
-  .bracket-match { margin: 3px 8px; border: 1px solid var(--border); background: #0d0d0d; }
-  .bracket-match.live-now { border-color: var(--accent); }
-  .bracket-team {
-    padding: 4px 8px; font-size: 9px;
-    display: flex; justify-content: space-between; align-items: center; gap: 4px;
-    white-space: nowrap; overflow: hidden;
-  }
-  .bracket-team:first-child { border-bottom: 1px solid var(--border); }
-  .bracket-team.winner { color: var(--accent); }
-  .bracket-team.loser { color: var(--dim); }
-  .bracket-team.pending { color: var(--text); }
-  .bt-name { overflow: hidden; text-overflow: ellipsis; }
-  .bt-score { font-family: 'Share Tech Mono', monospace; font-size: 10px; flex-shrink: 0; }
-  .bracket-arrow { display: flex; align-items: center; padding: 0 6px; color: var(--muted); font-size: 18px; align-self: center; }
-  .bracket-note { font-size: 9px; color: var(--muted); margin-top: 16px; border-top: 1px solid var(--border); padding-top: 10px; letter-spacing: 1px; }
+  /* HELP ICON */
   .help-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 1px solid var(--muted);
-    color: var(--muted);
-    font-size: 11px;
-    font-family: 'IBM Plex Mono', monospace;
-    cursor: pointer;
-    position: relative;
-    flex-shrink: 0;
-    transition: border-color 0.15s, color 0.15s;
-    user-select: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 1px solid var(--pill-border); color: var(--muted);
+    font-size: 12px; font-weight: 600; cursor: pointer; position: relative;
+    flex-shrink: 0; transition: border-color 0.15s, color 0.15s; user-select: none;
   }
   .help-icon:hover { border-color: var(--accent); color: var(--accent); }
   .help-tooltip {
-    display: none;
-    position: absolute;
-    top: 26px;
-    left: 0;
-    width: 320px;
-    background: #111;
-    border: 1px solid var(--accent);
-    padding: 14px 16px;
-    font-size: 11px;
-    color: var(--text);
-    line-height: 1.6;
-    letter-spacing: 0.3px;
-    z-index: 999;
-    pointer-events: none;
+    display: none; position: absolute; top: 30px; left: 0; width: 320px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--shadow); padding: 16px; font-size: 12px; color: var(--text);
+    line-height: 1.6; font-weight: 400; letter-spacing: normal; text-transform: none;
+    z-index: 999; pointer-events: none;
   }
-  .help-tooltip-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 13px;
-    letter-spacing: 3px;
-    color: var(--accent);
-    margin-bottom: 8px;
-  }
+  .help-tooltip-title { font-size: 12px; font-weight: 800; letter-spacing: 0.5px; color: var(--accent); margin-bottom: 8px; text-transform: uppercase; }
   .help-icon:hover .help-tooltip { display: block; }
 
+  /* README PAGE */
+  .readme-page {
+    max-width: 820px; margin: 12px auto;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 40px 44px 52px; font-size: 14px; line-height: 1.75; color: var(--text);
+  }
+  .readme-page h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); margin-bottom: 14px; line-height: 1.1; }
+  .readme-page h2 { font-size: 20px; font-weight: 800; color: var(--text); margin: 34px 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .readme-page h3 { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin: 22px 0 6px; }
+  .readme-page p { margin-bottom: 12px; color: var(--muted); }
+  .readme-lead { font-size: 15px; color: var(--text); }
+  .readme-page strong { color: var(--text); font-weight: 700; }
+  .readme-page ul { margin: 8px 0 14px 22px; color: var(--muted); }
+  .readme-page li { margin-bottom: 5px; }
+  .readme-hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+  .readme-note { background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 8px; padding: 12px 16px; font-size: 12px; color: var(--text); margin: 10px 0 14px; }
+  .readme-footer-line { text-align: center; color: var(--muted); font-size: 13px; margin-top: 16px; }
+  .readme-table { width: 100%; border-collapse: collapse; margin: 14px 0 20px; font-size: 12px; }
+  .readme-table th { text-align: left; padding: 9px 14px; font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); background: var(--strip); }
+  .readme-table td { padding: 9px 14px; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .readme-table tr:last-child td { border-bottom: none; }
+  .readme-table tr:hover td { background: var(--hover); color: var(--text); }
+
+  /* BRACKET PAGE */
+  .bracket-page { max-width: 1200px; margin: 12px auto; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; overflow-x: auto; }
+  .bracket-title { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; color: var(--text); margin-bottom: 18px; }
+  .bracket-container { display: flex; align-items: flex-start; min-width: max-content; }
+  .bracket-round { display: flex; flex-direction: column; }
+  .bracket-round-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding: 0 8px 10px; border-bottom: 1px solid var(--border); }
+  .bracket-col { display: flex; flex-direction: column; padding: 8px 0; border-right: 1px solid var(--border); min-width: 220px; }
+  .bracket-match { margin: 4px 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); overflow: hidden; }
+  .bracket-match.live-now { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .bracket-team { padding: 7px 10px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; }
+  .bracket-team:first-child { border-bottom: 1px solid var(--border); }
+  .bracket-team.winner { color: var(--text); font-weight: 700; }
+  .bracket-team.loser { color: var(--muted); }
+  .bracket-team.pending { color: var(--text); }
+  .bt-name { overflow: hidden; text-overflow: ellipsis; }
+  .bt-score { font-weight: 800; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  .bracket-arrow { display: flex; align-items: center; padding: 0 8px; color: var(--muted); font-size: 18px; align-self: center; }
+  .bracket-note { font-size: 11px; color: var(--muted); margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px; letter-spacing: 0.3px; }
+  .empty-bracket { padding: 44px; text-align: center; color: var(--muted); font-size: 13px; font-weight: 600; letter-spacing: 0.5px; }
+
   /* RECORDS PAGE */
-  .records-page { padding: 20px; max-width: 1100px; margin: 0 auto; }
-  .records-grid { display: grid; grid-template-columns: 1fr 1fr; }
-  .dynasty-banner {
-    border: 1px solid var(--accent); background: #0f1a00; color: var(--accent);
-    font-family: 'Bebas Neue', sans-serif; letter-spacing: 3px; font-size: 15px;
-    padding: 8px 14px; margin-bottom: 12px;
-  }
-  .rec-row {
-    padding: 6px 14px; border-bottom: 1px solid var(--border);
-    display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
-    font-size: 10px;
-  }
+  .records-page { max-width: 1100px; margin: 12px auto; }
+  .records-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .records-grid { grid-template-columns: 1fr; } }
+  .dynasty-banner { background: var(--accent); color: #fff; border-radius: var(--radius); box-shadow: var(--shadow); font-size: 15px; font-weight: 800; letter-spacing: 0.3px; padding: 16px 20px; margin-bottom: 20px; }
+  .rec-row { padding: 11px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12px; }
   .rec-row:last-child { border-bottom: none; }
-  .rec-key { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .rec-val { font-family: 'Share Tech Mono', monospace; color: var(--accent); flex-shrink: 0; }
-  .rec-sub { color: var(--muted); font-size: 9px; }
-  .records-actions { margin-top: 12px; display: flex; gap: 8px; }
+  .rec-row:hover { background: var(--hover); }
+  .rec-key { color: var(--text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rec-val { color: var(--accent); font-weight: 800; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  .rec-sub { color: var(--muted); font-size: 11px; font-weight: 500; }
+  .records-actions { margin: 4px 0 40px; display: flex; gap: 10px; flex-wrap: wrap; }
   .records-actions button {
-    font-family: 'IBM Plex Mono', monospace; font-size: 9px; background: none;
-    border: 1px solid var(--border); color: var(--muted); padding: 4px 10px;
-    cursor: pointer; letter-spacing: 1px; transition: color 0.15s, border-color 0.15s;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    background: var(--card); border: 1px solid var(--pill-border); color: var(--text);
+    padding: 9px 16px; border-radius: 999px; cursor: pointer; letter-spacing: 0.3px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
   }
-  .records-actions button:hover { color: var(--text); border-color: #444; }
-  .records-actions button.danger:hover { color: var(--danger); border-color: var(--danger); }
+  .records-actions button:hover { border-color: var(--accent); color: var(--accent); }
+  .records-actions button.danger { color: var(--danger); border-color: rgba(229,72,77,0.4); }
+  .records-actions button.danger:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div>
-    <div style="display:flex;align-items:center;gap:10px">
-      <div class="header-title">THE INFINITE RUGBY LEAGUE STADIUM</div>
-      <div class="help-icon">?
-        <div class="help-tooltip">
-          <div class="help-tooltip-title">WHAT IS THIS?</div>
-          Every rugby league team that has ever existed — across every competition, every country, every era — is competing in a single eternal knockout tournament.<br><br>
-          1908 Eastern Suburbs Roosters vs 2019 Tonga Mate Ma'a. 1972 St George Dragons vs the 2003 Leeds Rhinos. The bracket never ends. The stadium never closes. Games run around the clock, forever.
-        </div>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div class="topbar">
+  <div class="brand">
+    INFINITE&nbsp;<span class="accent">STADIUM</span>
+    <div class="help-icon">?
+      <div class="help-tooltip">
+        <div class="help-tooltip-title">WHAT IS THIS?</div>
+        Every rugby league team that has ever existed — across every competition, every country, every era — is competing in a single eternal knockout tournament.<br><br>
+        1908 Eastern Suburbs Roosters vs 2019 Tonga Mate Ma'a. 1972 St George Dragons vs the 2003 Leeds Rhinos. The bracket never ends. The stadium never closes. Games run around the clock, forever.
       </div>
     </div>
-    <div class="header-sub">Every team · Every era · Every competition · Forever</div>
   </div>
-  <div class="header-nav">
-    <button class="nav-btn active" id="btn-live" onclick="showPage('live',this)">▶ LIVE</button>
-    <button class="nav-btn" id="btn-bracket" onclick="showPage('bracket',this)">BRACKET</button>
-    <button class="nav-btn" id="btn-records" onclick="showPage('records',this)">RECORDS</button>
-    <button class="nav-btn" id="btn-readme" onclick="showPage('readme',this)">README</button>
-    <button class="nav-btn" id="btn-audio" onclick="toggleAudio(this)" title="Toggle live commentary audio">🔇 AUDIO</button>
+  <div class="topbar-nav">
+    <button class="nav-btn active" id="btn-live" onclick="showPage('live',this)">Live</button>
+    <button class="nav-btn" id="btn-bracket" onclick="showPage('bracket',this)">Bracket</button>
+    <button class="nav-btn" id="btn-records" onclick="showPage('records',this)">Records</button>
+    <button class="nav-btn" id="btn-readme" onclick="showPage('readme',this)">Readme</button>
   </div>
-  <div class="header-right">
-    <div><span class="live-badge">● LIVE</span></div>
-    <div class="clock" id="clock">--:--:--</div>
-    <div class="game-ctr">GAME #<span id="gameCounter">0</span></div>
+  <div class="topbar-right">
+    <span class="topbar-clock" id="clock">--:--:--</span>
+    <button class="pill" id="btn-audio" onclick="toggleAudio(this)" title="Toggle live commentary audio">🔇 Audio</button>
+    <select class="pill" id="speedSelect" onchange="changeSpeed(this)">
+      <option value="8000">×600 (8s)</option>
+      <option value="30000">×160 (30s)</option>
+      <option value="60000">×80 (1 min)</option>
+      <option value="90000" selected>×53 (90s)</option>
+      <option value="120000">×40 (2 min)</option>
+      <option value="300000">×16 (5 min)</option>
+      <option value="4800000">×1 (real time)</option>
+    </select>
   </div>
 </div>
+<div class="breadcrumb">Infinite Stadium <span>/</span> <b id="breadcrumbPage">Live</b></div>
 
 <!-- LIVE PAGE -->
 <div class="page active" id="page-live">
-  <div class="main">
+  <div class="container">
+    <div class="live-grid">
 
-    <div class="panel live-panel">
-      <div class="panel-label">▶ NOW PLAYING</div>
-      <div class="matchup">
-        <div class="team-block home">
-          <div class="team-era" id="homeEra"></div>
-          <div class="team-identity">
-            <div class="team-logo" id="homeLogo"></div>
-            <div class="team-name home" id="homeName">—</div>
+      <div class="col-main">
+
+        <!-- MATCH CENTRE -->
+        <div class="card">
+          <div class="section-strip">Match Centre</div>
+          <div class="mc-head">
+            <div class="chip-row">
+              <div class="chip active"><div class="chip-ic">🏉</div><div class="chip-lb">League</div></div>
+              <div class="chip"><div class="chip-ic">🏆</div><div class="chip-lb">Finals</div></div>
+              <div class="chip"><div class="chip-ic">🌏</div><div class="chip-lb">Intl</div></div>
+              <div class="chip"><div class="chip-ic">📊</div><div class="chip-lb">Stats</div></div>
+              <div class="chip"><div class="chip-ic">📅</div><div class="chip-lb">Draw</div></div>
+            </div>
+            <div class="pager">
+              <button class="pager-btn" title="Previous tournament" aria-label="Previous">‹</button>
+              <span class="pager-label">Tournament&nbsp;<span id="tournamentNum">1</span></span>
+              <button class="pager-btn" title="Next tournament" aria-label="Next">›</button>
+            </div>
           </div>
-          <div class="team-comp" id="homeComp"></div>
-        </div>
-        <div class="score-block">
-          <div class="score">
-            <span id="scoreHome" style="color:var(--home)">0</span><span class="score-sep">—</span><span id="scoreAway" style="color:var(--away)">0</span>
+          <div class="mc-meta">
+            <span>Game <b>#<span id="gameCounter">0</span></b></span>
+            <span>Round <b id="roundNum">1</b></span>
           </div>
-          <div class="match-time" id="matchTime">0'</div>
-          <div class="match-round" id="matchRound">ROUND 1</div>
         </div>
-        <div class="team-block away">
-          <div class="team-era" id="awayEra"></div>
-          <div class="team-identity away-identity">
-            <div class="team-name away" id="awayName">—</div>
-            <div class="team-logo" id="awayLogo"></div>
+
+        <!-- LIVE MATCH -->
+        <div class="card">
+          <div class="lm-body">
+            <div class="lm-row">
+              <div class="lm-team home">
+                <div class="team-logo" id="homeLogo"></div>
+                <div>
+                  <div class="team-era" id="homeEra"></div>
+                  <div class="team-name" id="homeName">—</div>
+                  <div class="team-comp" id="homeComp"></div>
+                </div>
+              </div>
+              <div class="lm-center">
+                <div class="live-pill"><span class="dot"></span>Live</div>
+                <div class="score-chip"><span id="scoreHome">0</span><span class="score-sep">–</span><span id="scoreAway">0</span></div>
+                <div class="match-time" id="matchTime">0'</div>
+                <div class="match-round" id="matchRound">ROUND 1</div>
+              </div>
+              <div class="lm-team away">
+                <div class="team-logo" id="awayLogo"></div>
+                <div>
+                  <div class="team-era" id="awayEra"></div>
+                  <div class="team-name" id="awayName">—</div>
+                  <div class="team-comp" id="awayComp"></div>
+                </div>
+              </div>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
           </div>
-          <div class="team-comp" id="awayComp"></div>
+          <div class="scoring-inner">
+            <div class="scoring-col home-col" id="homeScoringCol"><div style="color:var(--muted);font-size:11px">—</div></div>
+            <div class="scoring-divider" id="scoringDivider"></div>
+            <div class="scoring-col away-col" id="awayScoringCol"><div style="color:var(--muted);font-size:11px;text-align:right">—</div></div>
+          </div>
+          <div class="halftime-row" id="halftimeRow" style="display:none">
+            <div class="ht-label">Half Time</div>
+            <div class="ht-score">
+              <span style="color:var(--home)" id="htHome">0</span>
+              <span style="color:var(--muted)"> – </span>
+              <span style="color:var(--away)" id="htAway">0</span>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-    </div>
 
-    <div class="panel scoring-panel">
-      <div class="scoring-inner">
-        <div class="scoring-col home-col" id="homeScoringCol"><div style="color:var(--muted);font-size:9px">—</div></div>
-        <div class="scoring-divider" id="scoringDivider"></div>
-        <div class="scoring-col away-col" id="awayScoringCol"><div style="color:var(--muted);font-size:9px;text-align:right">—</div></div>
-      </div>
-      <div class="halftime-row" id="halftimeRow" style="display:none">
-        <div class="ht-label">HALF TIME</div>
-        <div class="ht-score">
-          <span style="color:var(--home)" id="htHome">0</span>
-          <span style="color:var(--muted)"> — </span>
-          <span style="color:var(--away)" id="htAway">0</span>
+        <!-- LAST RESULTS -->
+        <div class="card">
+          <div class="section-strip">Last 5 Results</div>
+          <div id="resultsList"></div>
         </div>
-      </div>
-    </div>
 
-    <div class="panel commentary-panel">
-      <div class="panel-label">COMMENTARY</div>
-      <div class="commentary-feed" id="commentaryFeed"></div>
-    </div>
+        <!-- NEXT FIXTURES -->
+        <div class="card">
+          <div class="section-strip">Next 5 Fixtures</div>
+          <div id="upcomingList"></div>
+        </div>
 
-    <div class="panel">
-      <div class="panel-label">NEXT 5 FIXTURES</div>
-      <div id="upcomingList"></div>
-    </div>
+        <!-- TOP SCORERS -->
+        <div class="card">
+          <div class="section-strip">Top Point Scorers</div>
+          <div id="scorersList"></div>
+        </div>
 
-    <div class="panel">
-      <div class="panel-label">LAST 5 RESULTS</div>
-      <div id="resultsList"></div>
-    </div>
+      </div><!-- /col-main -->
 
-    <div class="panel">
-      <div class="panel-label">TOP POINT SCORERS</div>
-      <div id="scorersList"></div>
-    </div>
+      <div class="col-side">
 
-  </div>
-  <div class="footer">
-    <span>KNOCKOUT BRACKET · ETERNAL COMPETITION</span>
-    <span class="footer-acc">T<span id="roundNum">1</span></span>
-    <span style="display:flex;align-items:center;gap:12px">
-      <span style="color:var(--muted);font-size:9px;letter-spacing:1px">SPEED</span>
-      <select id="speedSelect" onchange="changeSpeed(this)"
-        style="font-family:'IBM Plex Mono',monospace;font-size:9px;background:#111;color:var(--dim);border:1px solid var(--border);padding:2px 6px;letter-spacing:1px;cursor:pointer;outline:none">
-        <option value="8000">×600 (8s)</option>
-        <option value="30000">×160 (30s)</option>
-        <option value="60000">×80 (1 min)</option>
-        <option value="90000" selected>×53 (90s)</option>
-        <option value="120000">×40 (2 min)</option>
-        <option value="300000">×16 (5 min)</option>
-        <option value="4800000">×1 (real time)</option>
-      </select>
-      <button onclick="if(confirm('Reset all progress and start a new tournament?')) clearSave()"
-        style="font-family:'IBM Plex Mono',monospace;font-size:9px;background:none;border:1px solid var(--border);color:var(--muted);padding:2px 8px;cursor:pointer;letter-spacing:1px;transition:color 0.15s,border-color 0.15s"
-        onmouseover="this.style.color='var(--danger)';this.style.borderColor='var(--danger)'"
-        onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">RESET</button>
-    </span>
-  </div>
+        <!-- FRANCHISE RATINGS -->
+        <div class="card">
+          <div class="section-strip">Franchise Ratings</div>
+          <div id="franchiseRatings"></div>
+        </div>
+
+        <!-- COMMENTARY -->
+        <div class="card">
+          <div class="section-strip">Commentary</div>
+          <div class="commentary-feed" id="commentaryFeed"></div>
+        </div>
+
+      </div><!-- /col-side -->
+
+    </div><!-- /live-grid -->
+
+    <div class="footer">
+      <span>Knockout Bracket · Eternal Competition · Games run forever</span>
+      <button class="pill danger" onclick="if(confirm('Reset all progress and start a new tournament?')) clearSave()">Reset Tournament</button>
+    </div>
+  </div><!-- /container -->
 </div>
 
 <!-- README PAGE -->
@@ -706,6 +686,10 @@ function showPage(id, btn) {
   btn.classList.add('active');
   if (id==='bracket') renderBracket();
   if (id==='records') renderRecords();
+  if (id==='live') renderSidebar();
+  const pageNames = { live:'Live', bracket:'Bracket', records:'Records', readme:'Readme' };
+  const bc = document.getElementById('breadcrumbPage');
+  if (bc) bc.textContent = pageNames[id] || id;
 }
 
 function changeSpeed(sel) {
@@ -1647,8 +1631,9 @@ function queueSpeech(text) {
 
 function toggleAudio(btn) {
   audioEnabled = !audioEnabled;
-  btn.textContent = audioEnabled ? '🔊 AUDIO' : '🔇 AUDIO';
-  btn.style.color = audioEnabled ? 'var(--accent)' : '';
+  btn.textContent = audioEnabled ? '🔊 Audio' : '🔇 Audio';
+  btn.style.background = audioEnabled ? 'var(--accent)' : '';
+  btn.style.color = audioEnabled ? '#fff' : '';
   btn.style.borderColor = audioEnabled ? 'var(--accent)' : '';
   if (!audioEnabled) {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
@@ -1887,6 +1872,7 @@ function renderLive() {
   const roundName = BRACKET.roundNum === 1 ? 'ROUND 1' : BRACKET.roundNum === 2 ? 'ROUND 2' : BRACKET.roundNum === 3 ? 'ROUND 3' : BRACKET.roundNum === 4 ? 'QUARTER-FINALS' : BRACKET.roundNum === 5 ? 'SEMI-FINALS' : BRACKET.roundNum === 6 ? 'GRAND FINAL' : `ROUND ${BRACKET.roundNum}`;
   document.getElementById('matchRound').textContent = `T${BRACKET.tournament} · ${roundName} · GAME #${S.gameNumber.toLocaleString()} · ${half}`;
   document.getElementById('roundNum').textContent = BRACKET.roundNum;
+  const tnEl = document.getElementById('tournamentNum'); if (tnEl) tnEl.textContent = BRACKET.tournament;
   document.getElementById('homeName').textContent  = S.home.name;
   document.getElementById('homeEra').textContent   = S.home.year;
   document.getElementById('homeComp').textContent  = S.home.comp;
@@ -1923,7 +1909,39 @@ function renderUpcoming() {
     </div>`).join('');
 }
 
+function renderSidebar() {
+  const el = document.getElementById('franchiseRatings');
+  if (!el) return;
+  const fr = Object.entries(HISTORY.franchises || {})
+    .sort((a,b) => b[1].titles - a[1].titles || b[1].gfs - a[1].gfs || b[1].w - a[1].w)
+    .slice(0, 5);
+  if (!fr.length) {
+    el.innerHTML = `<div class="fr-empty">No franchise data yet — leave it running and champions will appear here.</div>`;
+    return;
+  }
+  el.innerHTML = fr.map(([n,f]) => {
+    const games  = f.w + f.l;
+    const rating = games ? Math.max(1, Math.round((f.w / games) * 10)) : (f.titles ? Math.min(10, f.titles * 2) : 1);
+    const r = 20, circ = 2 * Math.PI * r, off = circ * (1 - rating / 10);
+    return `<div class="fr-row">
+      <div class="fr-dial">
+        <svg width="46" height="46" viewBox="0 0 46 46">
+          <circle cx="23" cy="23" r="20" fill="none" stroke="var(--border)" stroke-width="4"></circle>
+          <circle cx="23" cy="23" r="20" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"></circle>
+        </svg>
+        <div class="fr-dial-val">${rating}</div>
+      </div>
+      <div class="fr-info">
+        <div class="fr-name">${n}</div>
+        <div class="fr-stat">${f.w}W–${f.l}L · ${f.titles}★ · ${f.gfs}GF</div>
+      </div>
+      <button class="fr-link" title="View records" onclick="showPage('records',document.getElementById('btn-records'))">→</button>
+    </div>`;
+  }).join('');
+}
+
 function renderResults() {
+  renderSidebar();
   const el = document.getElementById('resultsList');
   if (!S.results.length) { el.innerHTML=`<div class="game-row" style="color:var(--muted)">No results yet</div>`; return; }
   el.innerHTML = S.results.map((r,i)=>{
