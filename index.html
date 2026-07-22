@@ -1860,6 +1860,22 @@ function buildDivider() {
   return html;
 }
 
+// Derive the round's stage name from how many teams are still alive, rather
+// than from roundNum (with ~615 teams there are ~10 rounds, so fixed roundNum
+// → stage maps are wrong). Call with no args for the current round; pass an
+// explicit (alive, rnum) to label a historical round from its own survivor count.
+function roundName(alive, rnum) {
+  if (alive == null) alive = BRACKET.roundMatchups.length * 2 + BRACKET.nextRoundWinners.filter(Boolean).length + 2;
+  if (rnum == null) rnum = BRACKET.roundNum;
+  if (alive <= 2)  return 'GRAND FINAL';
+  if (alive <= 3)  return 'PRELIMINARY FINAL';
+  if (alive <= 4)  return 'SEMI-FINALS';
+  if (alive <= 8)  return 'QUARTER-FINALS';
+  if (alive <= 16) return 'ROUND OF 16';
+  if (alive <= 32) return 'ROUND OF 32';
+  return `ROUND ${rnum}`;
+}
+
 function renderLive() {
   const pct = S.goldenPoint ? 1 : Math.min(1, S.elapsed/80);
   const fill = document.getElementById('progressFill');
@@ -1868,9 +1884,7 @@ function renderLive() {
   const min = Math.min(80, Math.round(S.elapsed));
   const half = S.goldenPoint ? 'EXTRA TIME — GOLDEN POINT' : S.elapsed <= 40 ? '1ST HALF' : '2ND HALF';
   document.getElementById('matchTime').textContent = S.goldenPoint ? `${Math.round(S.elapsed)}'` : `${min}'`;
-  const remaining = BRACKET.roundMatchups.length + BRACKET.nextRoundWinners.filter(Boolean).length + 1;
-  const roundName = BRACKET.roundNum === 1 ? 'ROUND 1' : BRACKET.roundNum === 2 ? 'ROUND 2' : BRACKET.roundNum === 3 ? 'ROUND 3' : BRACKET.roundNum === 4 ? 'QUARTER-FINALS' : BRACKET.roundNum === 5 ? 'SEMI-FINALS' : BRACKET.roundNum === 6 ? 'GRAND FINAL' : `ROUND ${BRACKET.roundNum}`;
-  document.getElementById('matchRound').textContent = `T${BRACKET.tournament} · ${roundName} · GAME #${S.gameNumber.toLocaleString()} · ${half}`;
+  document.getElementById('matchRound').textContent = `T${BRACKET.tournament} · ${roundName()} · GAME #${S.gameNumber.toLocaleString()} · ${half}`;
   document.getElementById('roundNum').textContent = BRACKET.roundNum;
   const tnEl = document.getElementById('tournamentNum'); if (tnEl) tnEl.textContent = BRACKET.tournament;
   document.getElementById('homeName').textContent  = S.home.name;
@@ -2028,11 +2042,15 @@ function renderBracket() {
     return;
   }
 
-  const ROUND_NAMES = {1:'ROUND 1',2:'ROUND 2',3:'ROUND 3',4:'QUARTERS',5:'SEMIS',6:'GRAND FINAL'};
   let html = '';
 
   BRACKET.completedRounds.forEach((rd, ri) => {
-    const label = ROUND_NAMES[rd.roundNum] || `ROUND ${rd.roundNum}`;
+    // The in-progress round is labelled from current survivors (its rd.matches
+    // is still filling up). A fully completed round is derived from its own
+    // size: it had rd.matches.length matches, so ~2× that many teams contested it.
+    const label = rd.roundNum === BRACKET.roundNum
+      ? roundName()
+      : roundName(rd.matches.length * 2, rd.roundNum);
     html += `<div class="bracket-round">
       <div class="bracket-round-label">${label} <span style="color:var(--muted);font-size:9px">(${rd.matches.length})</span></div>
       <div class="bracket-col">`;
@@ -2074,7 +2092,7 @@ function renderBracket() {
   // If current round not yet in completedRounds, add it
   if (S.home && !BRACKET.completedRounds.find(r=>r.roundNum===BRACKET.roundNum)) {
     if (BRACKET.completedRounds.length) html += `<div class="bracket-arrow">→</div>`;
-    const label = ROUND_NAMES[BRACKET.roundNum] || `ROUND ${BRACKET.roundNum}`;
+    const label = roundName();
     html += `<div class="bracket-round">
       <div class="bracket-round-label">${label}</div>
       <div class="bracket-col">
@@ -2095,7 +2113,7 @@ function renderBracket() {
   container.innerHTML = html;
 
   const teamsLeft = BRACKET.roundMatchups.length * 2 + BRACKET.nextRoundWinners.filter(Boolean).length + 2;
-  note.textContent = `TOURNAMENT ${BRACKET.tournament} · ${ROUND_NAMES[BRACKET.roundNum]||'ROUND '+BRACKET.roundNum} · ~${teamsLeft} TEAMS REMAINING`;
+  note.textContent = `TOURNAMENT ${BRACKET.tournament} · ${roundName()} · ~${teamsLeft} TEAMS REMAINING`;
 }
 
 // ─── TICK ────────────────────────────────────────────────────
