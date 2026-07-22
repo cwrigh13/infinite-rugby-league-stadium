@@ -1344,6 +1344,44 @@ let S = {
   goldenPoint: false,
 };
 
+function findStorylines(home, away) {
+  const lines = [];
+  const hKey = `${home.name}|${home.year}`, aKey = `${away.name}|${away.year}`;
+  if (home.name === away.name) {
+    const gap = Math.abs(home.year - away.year);
+    lines.push(`CIVIL WAR: the ${Math.min(home.year,away.year)} and ${Math.max(home.year,away.year)} ${home.name} meet across ${gap} years.`);
+  }
+  if (lines.length < 2) {
+    const rematch = HISTORY.tournaments.find(t => {
+      const cKey = `${t.champ.name}|${t.champ.year}`, rKey = `${t.runnerUp.name}|${t.runnerUp.year}`;
+      return (cKey === hKey && rKey === aKey) || (cKey === aKey && rKey === hKey);
+    });
+    if (rematch) lines.push(`Grand Final rematch of Tournament ${rematch.n}.`);
+  }
+  if (lines.length < 2) {
+    const d = HISTORY.dynasty;
+    if (d.current && d.current.count >= 1 && (d.current.key === hKey || d.current.key === aKey)) {
+      const [nm, yr] = d.current.key.split('|');
+      lines.push(`${yr} ${nm} defend their title.`);
+    }
+  }
+  if (lines.length < 2) {
+    for (const [entry, key] of [[home,hKey],[away,aKey]]) {
+      if (lines.length >= 2) break;
+      const rec = HISTORY.entries[key];
+      if (rec && rec.titles >= 2) lines.push(`${rec.titles}-time champions ${entry.year} ${entry.name} enter.`);
+    }
+  }
+  if (lines.length < 2 && typeof RATINGS !== 'undefined') {
+    const hR = RATINGS[home.name], aR = RATINGS[away.name];
+    if (hR != null && aR != null && Math.abs(hR - aR) >= 4) {
+      const fav = hR > aR ? home : away, dog = hR > aR ? away : home;
+      lines.push(`Heavy favourites ${fav.name} meet the ${dog.year} minnows.`);
+    }
+  }
+  return lines;
+}
+
 function newMatch() {
   const matchup = nextMatchup();
   S.home = matchup.home;
@@ -1361,6 +1399,8 @@ function newMatch() {
   }
   lastCommAt = -999;
   setTimeout(() => pushCommentary(rn(COMM.kickoff)(S.home.name, S.away.name), ''), 200);
+  const stories = findStorylines(S.home, S.away);
+  if (stories.length) setTimeout(() => stories.forEach(l => pushCommentary(l, 'muted', false)), 400);
 }
 
 function closeGame() {
