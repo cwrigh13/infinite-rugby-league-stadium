@@ -1349,7 +1349,7 @@ function newMatch() {
   S.homeScore = 0; S.awayScore = 0;
   S.homeSquad = genSquad(S.home.name); S.awaySquad = genSquad(S.away.name);
   S.log = []; S.htScores = null; S.elapsed = 0; S.goldenPoint = false;
-  S.nextEvent = 5 + Math.random()*8;
+  S.nextEvent = 3 + Math.random()*6;
   // Peek at next 5 upcoming without consuming them
   S.upcoming = [];
   const peek = [...BRACKET.roundMatchups];
@@ -1439,33 +1439,33 @@ function fireEvent() {
   }
 
   // Normal time
-  if (roll < 0.50) {
+  if (roll < 0.55) {
     if (isHome) S.homeScore += 4; else S.awayScore += 4;
     S.log.push({ type:'try', player, team:side, minute:min });
     commForEvent('try', player, side, side);
-    if (Math.random() < 0.65) {
+    if (Math.random() < 0.78) {
       const kicker = rn(squad).name;
       if (isHome) S.homeScore += 2; else S.awayScore += 2;
       S.log.push({ type:'conversion', player:kicker, team:side, minute:min+1 });
       commForEvent('conversion', kicker, side, side);
     }
-  } else if (roll < 0.65) {
+  } else if (roll < 0.61) {
     const kicker = rn(squad).name;
     if (isHome) S.homeScore += 2; else S.awayScore += 2;
     S.log.push({ type:'penalty', player:kicker, team:side, minute:min });
     commForEvent('penalty', kicker, side, side);
-  } else if (roll < 0.70) {
+  } else if (roll < 0.63) {
     if (isHome) S.homeScore += 1; else S.awayScore += 1;
     S.log.push({ type:'fieldgoal', player, team:side, minute:min });
     commForEvent('fieldgoal', player, side, side);
-  } else if (roll < 0.80) {
+  } else if (roll < 0.7533) {
     commForEvent('sinbin', player, side, side);
-  } else if (roll < 0.88) {
+  } else if (roll < 0.8520) {
     commForEvent('injury', player, side, side);
   } else {
     commForEvent('bighit', player, side, side);
   }
-  S.nextEvent = S.elapsed + 6 + Math.random()*9;
+  S.nextEvent = S.elapsed + 4 + Math.random()*7;
 }
 
 // ─── COMMENTARY ENGINE ──────────────────────────────────────
